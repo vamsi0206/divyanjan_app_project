@@ -23,10 +23,10 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
      change card status                 │                     │ response to query     │  │
      search card details                │                     │                       │  │
      download card                      │                     │                       │  │
-     delete user                        │  ┌────────────────┐ │                       │  │
+                                        │  ┌────────────────┐ │                       │  │
                                         │  │                │ │     accept, reject    │  │
-view applications                       │  │                ├─┼───────────────────────┘  │
-see applicn  status   ┌─────────────────┼──┤                │ │                          │
+view application                        │  │                ├─┼───────────────────────┘  │
+see application status┌─────────────────┼──┤                │ │                          │
 accept application    │                 │  │employee module ├─┼──────────────────────────┘
 reject application    │                 │  │                │ │          fetch
  login                │                 │  └─────────────▲──┤ │
@@ -47,7 +47,15 @@ reject application    │                 │  │                │ │       
                                                  │                                        │
                                                  └────────────────────────────────────────┘
 
-Data will be sent and received from user and employee through requests and response.
+
+
+
+
+
+
+
+
+
 
 ## Add your files
 
