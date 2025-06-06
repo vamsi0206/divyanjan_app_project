@@ -10,52 +10,38 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ## Rough diagram of the modules in backend
 
-              applicant                 ┌─────────────────────┐
-                                        │                     │       post
-                     │                  │                     │       update data
-                     │                  │  ┌───────────────┐  │       query          ┌─────────────────┐
-     create user     │                  │  │               ├──┼──────────────────────┤                 │
-     login           └──────────────────┼──┤ user module   │  │                      │ database        │
-     enter form(text, documents)        │  │               ├──┼──────────────────────┤                 │
-     save draft                         │  │               │  │ check status,        │                 │
-     view draft                         │  │               │  │ download             └▲──┬─────────────┘
-     modify concession card             │  └───────────────┘  │ division reports      │  │
-     change card status                 │                     │ response to query     │  │
-     search card details                │                     │                       │  │
-     download card                      │                     │                       │  │
-                                        │  ┌────────────────┐ │                       │  │
-                                        │  │                │ │     accept, reject    │  │
-view application                        │  │                ├─┼───────────────────────┘  │
-see application status┌─────────────────┼──┤                │ │                          │
-accept application    │                 │  │employee module ├─┼──────────────────────────┘
-reject application    │                 │  │                │ │          fetch
- login                │                 │  └─────────────▲──┤ │
- create user          │                 │                │  │ │
-                      │                 │                │  │ │
-                      │                 │                │  │ │
-                      │                 └────────────────┼──┼─┘
-              employee                                   │  │
-                                                         │  │
-                                                         │  │
-                                                         │  │
-                                                         │  │
-                                                         │  │
-                                                response │  │
-                                                         │  │
-                                                 ┌───────┴──┴─────────────────────────────┐
-                                                 │ api to verify documents like aadhar etc│
-                                                 │                                        │
-                                                 └────────────────────────────────────────┘
+```text
 
-
-
-
-
-
-
-
-
-
+              applicant
+                                        +---------------------+       post
+                     |                  |                     |       update data
+                     |                  |  +---------------+  |       query filter   +-----------+
+create user          |                  |  |               +--+----------------------+           |
+login                +------------------+--+ user module   |  |                      | database  |
+enter form(text, documents)             |  |               +--+----------------------+           |
+save draft                              |  +---------------+  |       fetch response +^--+-------+
+view draft                              |                     |                       |  |
+modify concession card                  |                     |                       |  |
+change card status                      |                     |                       |  |
+search card details                     |                     |                       |  |
+download card                           |                     |                       |  |
+                                        |                     |                       |  |
+                                        |  +----------------+ |     accept, reject    |  |
+view application                        |  |                +-+-----------------------+  |
+see application status+-----------------+--+                | |                          |
+accept application    |                 |  |employee module +-+--------------------------+
+reject application    |                 |  |                | |          fetch data
+ login                                  |  +-------------^--+ |          query
+ create user                            |                |  | |          filter
+                    employee            +----------------+--+-+
+                                                         |  |
+                                                         |  |
+                                            response     |  |
+                                                         |  |
+                                                 +-------+--+-----------------------------+
+                                                 |api to verify documents like aadhar etc |
+                                                 +----------------------------------------+
+```
 
 ## Add your files
 
