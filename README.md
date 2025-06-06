@@ -8,6 +8,47 @@ To make it easy for you to get started with GitLab, here's a list of recommended
 
 Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
 
+## Rough diagram of the modules in backend
+
+              applicant                 ┌─────────────────────┐
+                                        │                     │       post
+                     │                  │                     │       update data
+                     │                  │  ┌───────────────┐  │       query          ┌─────────────────┐
+     create user     │                  │  │               ├──┼──────────────────────┤                 │
+     login           └──────────────────┼──┤ user module   │  │                      │ database        │
+     enter form(text, documents)        │  │               ├──┼──────────────────────┤                 │
+     save draft                         │  │               │  │ check status,        │                 │
+     view draft                         │  │               │  │ download             └▲──┬─────────────┘
+     modify concession card             │  └───────────────┘  │ division reports      │  │
+     change card status                 │                     │ response to query     │  │
+     search card details                │                     │                       │  │
+     download card                      │                     │                       │  │
+     delete user                        │  ┌────────────────┐ │                       │  │
+                                        │  │                │ │     accept, reject    │  │
+view applications                       │  │                ├─┼───────────────────────┘  │
+see applicn  status   ┌─────────────────┼──┤                │ │                          │
+accept application    │                 │  │employee module ├─┼──────────────────────────┘
+reject application    │                 │  │                │ │          fetch
+ login                │                 │  └─────────────▲──┤ │
+ create user          │                 │                │  │ │
+                      │                 │                │  │ │
+                      │                 │                │  │ │
+                      │                 └────────────────┼──┼─┘
+              employee                                   │  │
+                                                         │  │
+                                                         │  │
+                                                         │  │
+                                                         │  │
+                                                         │  │
+                                                response │  │
+                                                         │  │
+                                                 ┌───────┴──┴─────────────────────────────┐
+                                                 │ api to verify documents like aadhar etc│
+                                                 │                                        │
+                                                 └────────────────────────────────────────┘
+
+Data will be sent and received from user and employee through requests and response.
+
 ## Add your files
 
 - [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
