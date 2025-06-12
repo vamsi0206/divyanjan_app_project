@@ -1,20 +1,19 @@
-var mysql = require('mysql');
+const express = require('express');
+const mysql = require('mysql');
+const cors = require('cors')
+const bodyParser = require('body-parser')
+
+const app = express();
+const port = 3000;
 
 var connection = mysql.createConnection({
   host: "localhost",
   user: "hellojee",
-  password: "Cris1234@"
+  password: "Cris1234@",
+  database: "mydb"
 });
 
-connection.connect(function(err) {
-  if (err) throw err;
-  console.log("Connected!");
-    connection.query("use mydb", function (err, result) {
-    if (err) throw err;
-    console.log("Database created");
-  });
-   connection.query("create table userInfo(name varchar(30), age int)", function (err, result) {
-    if (err) throw err;
-    console.log("Database created");
-  });
-});
+
+app.get('/login', (req, res)=>{
+
+})
