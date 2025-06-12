@@ -6,6 +6,10 @@ const bodyParser = require('body-parser')
 const app = express();
 const port = 3000;
 
+app.use(cors()); // Allow requests from different origins (like your Flutter app)
+app.use(bodyParser.json()); // This is CRUCIAL: it makes Express understand JSON data sent in the request body
+app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded data (good to include)
+
 var connection = mysql.createConnection({
   host: "localhost",
   user: "hellojee",
@@ -40,13 +44,13 @@ app.post('/login', (req, res)=>{
       });
     }
     else if (result.length>0){
-      console.log(`Username '${username}' found in database.`);
+      console.log(`number '${mobile_number}' found in database.`);
       return res.status(200).json({ // Send a 200 status for "OK"
         status: 'good',
         message: 'Username exists!'
       });
     }else{
-      console.log(`Username '${username}' not found in database.`);
+      console.log(`number '${mobile_number}' not found in database.`);
       return res.status(200).json({ // Still 200 OK, but with a 'bad' status for your app logic
         status: 'bad',
         message: 'Username not found!'
