@@ -13,7 +13,50 @@ var connection = mysql.createConnection({
   database: "mydb"
 });
 
+// Try to connect to the MySQL database
+connection.connect((err) => {
+    if (err) {
+        console.error('Error connecting to MySQL database:', err);
+        // It's crucial to handle this error. Your server won't be able to talk to the DB.
+        // You might want to exit the process or show a prominent error message.
+        return;
+    }
+    console.log('Connected to MySQL database!');
+});
 
-app.get('/login', (req, res)=>{
+
+app.post('/login', (req, res)=>{
+  const {mobile_number, name} = req.body;
+
+  console.log(`Received login request for number: ${mobile_number}`);
+
+  connection.query("SELECT * FROM userinfo WHERE mobile_number = ?", [mobile_number], (err, result)=>{
+    if (err) {
+      // If there's an error with the database query itself
+      console.error('Error executing query:', err);
+      return res.status(500).json({ // Send a 500 status for "Internal Server Error"
+        status: 'bad',
+        message: 'An error occurred while checking the database.'
+      });
+    }
+    else if (result.length>0){
+      console.log(`Username '${username}' found in database.`);
+      return res.status(200).json({ // Send a 200 status for "OK"
+        status: 'good',
+        message: 'Username exists!'
+      });
+    }else{
+      console.log(`Username '${username}' not found in database.`);
+      return res.status(200).json({ // Still 200 OK, but with a 'bad' status for your app logic
+        status: 'bad',
+        message: 'Username not found!'
+      });
+    }
+  })
 
 })
+
+app.listen(port, () => {
+    console.log(`Backend server running on http://localhost:${port}`);
+    console.log('Waiting for Flutter requests...');
+});
