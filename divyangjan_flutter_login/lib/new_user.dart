@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 void main() => runApp(MaterialApp(
   theme: ThemeData(
-      fontFamily: 'Inria sans'
+      fontFamily: 'InriaSans'
   ),
   home: NewUserPage(),
 ));
