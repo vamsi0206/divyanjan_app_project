@@ -1,21 +1,31 @@
 const loginDb = require('../databaseModules/applicant')
-const bcrypt = require('bcryptjs')
+//const bcrypt = require('bcryptjs')
 const express = require('express')
+const { placeholderCheckUserExistsFromMobile,placeholderCreateUser } = require('./placeholderFunctions')
 const router = express.Router()
 
-router.post('/register', async (req, res) => {
-    const { username,mobileNumber,email, password } = req.body;
-    console.log(req.body);
+router.post('/register', async (request, response) => {
+    const { applicantName,mobileNumber,email, password ,gender,disability} = request.body;
+    console.log(request.body);
 
-    if (!mobileNumber || !password )
-        return res.status(400).json({ msg: 'Missing details' })
+    if (!applicantName|| !mobileNumber || !password || !email ||!gender ||!disability)
+        return response.status(400).json({ msg: 'Missing details' })
 
     //query database to check if user with given mobile number already exists
-    //const userFound= 
-    if (userFound) return res.status(400).json({ msg: 'User already exists' })
+    const userFound= placeholderCheckUserExistsFromMobile(mobileNumber,true)
+    if (userFound) return response.status(400).json({ msg: 'User already exists' })
 
-    const newUser = new Users({ roll, password, role })
-    // perform databse insert opertion to insert new user
+        // perform databse insert opertion to insert new user
+    const createUserSuccess= placeholderCreateUser(applicantName,mobileNumber,email, password ,gender,disability, true)
+    if(createUserSuccess==true)
+    {
+         return resp.status(200).json({ message: 'User created successfully' }) 
+    }
+    else
+    {
+        return response.status(400).json({ msg: 'Failed to create user in database' })
+    }
+    
 
     //return success message if user successfully created
 })

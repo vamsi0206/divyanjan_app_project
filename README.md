@@ -52,6 +52,14 @@ app.js : Main execution for app server
 
 Please add code to perform database operations in databaseModules subfolder as well as complete the commented code in routes 
 
+## todos
+Execute and check functioning of http requests to perform functions in database
+Redefine database schema and create table queries based on suggestions.
+Add code to execute create database and create table operations
+Maintain user sessions in database and using cookies
+
+
+
 ## description of some libraries used 
 
 
