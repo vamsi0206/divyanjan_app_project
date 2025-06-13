@@ -1,9 +1,9 @@
-const loginDb = require('../databaseModules/applicant')
-const bcrypt = require('bcryptjs')
+const loginDb = require('../databaseModules/applicantModel')
+//const bcrypt = require('bcryptjs')
 const express = require('express')
 const router = express.Router()
 
-const { placeholderCheckUserExists ,placeHolderPasswordMatch} = require('./placeholderFunctions')
+const {placeholderPasswordMatch, placeholderCheckUserExistsFromMobile} = require('./placeholderFunctions')
 
 
 router.get('/hello', (req, res) => {
@@ -11,19 +11,20 @@ router.get('/hello', (req, res) => {
   });
 
 //for login page
-router.post('login', async(request,response) =>{
+router.post('/login', async(request,response) =>{
     const { mobileNum, password}=request.body
+    console.log(request.body)
     if(!mobileNum || ! password)
         return response.status(400).json({message: 'Missing details'})
 
     //check if this user with this mobile number exists and account actually exists in database or not
-    const userExists=placeholderCheckUserExists(mobileNum,true);
+    const userExists=placeholderCheckUserExistsFromMobile(mobileNum,true);
     if(!userExists)
     {
         return response.status(400).json({ message: 'No User registered with given mobile number' })   
     }
     // check if provided password matches the stored password from database
-    const passwordMatch=placeHolderPasswordMatch(password,true);
+    const passwordMatch=placeholderPasswordMatch(password,true);
     if(passwordMatch)
     {
         return response.status(200).json({ message: 'You have logged in successfully' }) 

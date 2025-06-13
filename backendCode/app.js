@@ -1,11 +1,11 @@
 const express= require('express')
-const session = require('express-session')
+//const session = require('express-session')
 const bodyParser =require('body-parser')
 const mysql= require('mysql2')
 
 //modules for route actions
 const applicantLoginRoutes= require('./routes/applicantLoginRoutes')
-const registerRoutes= require('./routes/registerRoutes')
+const applicantRegisterRoutes= require('./routes/registerRoutes')
 
 const app = express()
 

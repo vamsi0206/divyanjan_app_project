@@ -1,4 +1,4 @@
-const loginDb = require('../databaseModules/applicant')
+const loginDb = require('../databaseModules/applicantModel')
 //const bcrypt = require('bcryptjs')
 const express = require('express')
 const { placeholderCheckUserExistsFromMobile,placeholderCreateUser } = require('./placeholderFunctions')

@@ -52,6 +52,23 @@ app.js : Main execution for app server
 
 Please add code to perform database operations in databaseModules subfolder as well as complete the commented code in routes 
 
+## sample curl command to check execution of server and execute api request
+### command prompt
+```shell
+curl --location --request POST "http://localhost:3000/applicantLogin/login" --header "accept: application/json" --header "Content-Type: application/json" --data "{\"mobileNum\":1234554321, \"password\":\"abc\"}" 
+```
+
+### powershell
+```shell
+Invoke-RestMethod -Uri "http://localhost:3000/applicantLogin/login" `
+  -Method Post `
+  -Headers @{
+      "accept" = "application/json"
+      "Content-Type" = "application/json"
+  } `
+  -Body '{ "mobileNum": 1234554321, "password": "abc" }'
+```
+
 ## todos
 Execute and check functioning of http requests to perform functions in database
 Redefine database schema and create table queries based on suggestions.
