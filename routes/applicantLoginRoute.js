@@ -5,6 +5,8 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const router = express.Router()
 
+module.exports = (connection) => {
+
 router.post('/login', (req, res)=>{
   const {mobile_number, name} = req.body;
 
@@ -35,4 +37,8 @@ router.post('/login', (req, res)=>{
   })
 
 })
+
+return router;
+
+}
 
