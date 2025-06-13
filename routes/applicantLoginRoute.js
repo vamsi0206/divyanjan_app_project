@@ -3,37 +3,9 @@ const session = require('express-session')
 const mysql = require('mysql');
 const cors = require('cors')
 const bodyParser = require('body-parser')
+const router = express.Router()
 
-const app = express();
-const port = 3000;
-
-app.use(cors()); // Allow requests from different origins (like your Flutter app)
-app.use(bodyParser.json()); // This is CRUCIAL: it makes Express understand JSON data sent in the request body
-app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded data (good to include)
-
-var connection = mysql.createConnection({
-  host: "localhost",
-  user: "hellojee",
-  password: "Cris1234@",
-  database: "mydb"
-});
-
-// Try to connect to the MySQL database
-connection.connect((err) => {
-    if (err) {
-        console.error('Error connecting to MySQL database:', err);
-        // It's crucial to handle this error. Your server won't be able to talk to the DB.
-        // You might want to exit the process or show a prominent error message.
-        return;
-    }
-    console.log('Connected to MySQL database!');
-});
-
-
-const applicantLoginRoute = require('./routes/applicantLoginRoute')
-app.use('/applicantLogin', applicantLoginRoute)
-
-app.post('/login', (req, res)=>{
+router.post('/login', (req, res)=>{
   const {mobile_number, name} = req.body;
 
   console.log(`Received login request for number: ${mobile_number}`);
@@ -64,7 +36,3 @@ app.post('/login', (req, res)=>{
 
 })
 
-app.listen(port, () => {
-    console.log(`Backend server running on http://localhost:${port}`);
-    console.log('Waiting for Flutter requests...');
-});
