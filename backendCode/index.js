@@ -8,6 +8,7 @@ const app = express();
 const port = 3000;
 
 const applicantLoginRoute = require('./routes/applicantLoginRoute')
+const applicantRegisterRoute = require('./routes/applicantRegisterRoute')
 
 
 app.use(cors()); // Allow requests from different origins (like your Flutter app)
@@ -35,6 +36,7 @@ connection.connect((err) => {
     console.log('Connected to MySQL database!');
 
     app.use('/', applicantLoginRoute(connection))
+    app.use('/', applicantRegisterRoute(connection))
 
     app.listen(port, "0.0.0.0", () => {
         console.log(`Backend server running on http://0.0.0.0:${port}`);
