@@ -1,11 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:http/http.dart' as http;
 
 import 'new_user.dart';
 
 import 'staff_login.dart';
-
+import 'applicant_dashboard.dart';
 
 
 
@@ -49,12 +51,65 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  void _tryLogin() {
+  void _tryLogin() async{
     if (_formKey.currentState!.validate()) {
-      print('LOGIN successful');
+
+      // showDialog(
+      //   context:context,
+      //   barrierDismissible:false,
+      //   builder : (context) => Center(child: CircularProgressIndicator())
+      // );
+
+      //Call the API
+      await _loginUser();
+
+      //Dismiss loading indicator
+      // Navigator.of(context).pop();
     }
   }
+  Future<void> _loginUser() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator=Navigator.of(context);
 
+    try{
+        final url = Uri.parse('http://192.168.77.133:3000/api/login');
+        final headers = {'Content-Type' : 'application/json; charset=UTF-8'};
+        final body=jsonEncode({
+          'mobile-number':_mobileController.text.trim(),
+          'password' : _passwordController.text.trim(),
+        });
+        //Make the HTTP POST request to the server
+        final response=await http.post(url,headers:headers,body:body);
+        //Decode the JSON response from the server
+        final responseData=jsonDecode(response.body);
+        //Handle the server response
+        if(response.statusCode==200){
+          if(responseData['status']==true){
+            // print(responseData['message']);
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content:Text('Login Successful')),
+            );
+            navigator.pushReplacement(
+              MaterialPageRoute(builder: (_) => MyHomePage(title: 'Flutter Demo Home Page')),
+            );
+          }else{
+             scaffoldMessenger.showSnackBar(
+               SnackBar(content: Text('Invalid Credentials')),
+             );
+          }
+        }else {
+          // If the server returns an error status code, show a generic server error message
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text('Server error: ${response.statusCode}')),
+          );
+        }
+    } catch (e) {
+      // If there is a network or other error, show a network error message
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
+      );
+    }
+  }
 
 
   @override
@@ -162,7 +217,7 @@ class _HomeState extends State<Home> {
                     SizedBox(height: 10),
 
                     Container(
-                      width: 300,
+                      width: 350,
                       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                       padding: EdgeInsets.fromLTRB(10.0,1.0,10.0,10.0),
                       decoration: BoxDecoration(
@@ -198,7 +253,7 @@ class _HomeState extends State<Home> {
                     SizedBox(height: 10.0),
 
                     Container(
-                      width: 300,
+                      width: 350,
                       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                       padding: EdgeInsets.fromLTRB(10.0,1.0,10.0,10.0),
                       decoration: BoxDecoration(

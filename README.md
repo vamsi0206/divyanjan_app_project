@@ -43,45 +43,42 @@ reject application    │                 │  │                │ │       
 
 ```
 
-## Add your files
+## Current backend code structure
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+routes folder : express js url endpoint routes requests handling
+database Modules folder : functions to perform queries, data insertion, table creation ,data updation on database
 
+app.js : Main execution for app server
+
+Please add code to perform database operations in databaseModules subfolder as well as complete the commented code in routes 
+
+## sample curl command to check execution of server and execute api request
+### command prompt
+```shell
+curl --location --request POST "http://localhost:3000/applicantLogin/login" --header "accept: application/json" --header "Content-Type: application/json" --data "{\"mobileNum\":1234554321, \"password\":\"abc\"}" 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/rishabhsahu325/cris_sec25_divjan.git
-git branch -M main
-git push -uf origin main
+
+### powershell
+```shell
+Invoke-RestMethod -Uri "http://localhost:3000/applicantLogin/login" `
+  -Method Post `
+  -Headers @{
+      "accept" = "application/json"
+      "Content-Type" = "application/json"
+  } `
+  -Body '{ "mobileNum": 1234554321, "password": "abc" }'
 ```
 
-## Integrate with your tools
+## todos
+Execute and check functioning of http requests to perform functions in database
+Redefine database schema and create table queries based on suggestions.
+Add code to execute create database and create table operations
+Maintain user sessions in database and using cookies
 
-- [ ] [Set up project integrations](https://gitlab.com/rishabhsahu325/cris_sec25_divjan/-/settings/integrations)
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## description of some libraries used 
 
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
 
 ## Suggestions for a good README
 
