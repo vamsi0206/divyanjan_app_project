@@ -1,8 +1,26 @@
-//imports
 
-//function to check if user with given mobile number exists in database
+const getUserByMobileNumber = (connection, mobileNumber) => {
+  const query = "SELECT * FROM userinfo WHERE mobile_number = ?";
+  return new Promise((resolve, reject) => {
+    connection.query(query, [mobileNumber], (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(results);
+    });
+  });
+};
 
-//function to check if password of request matches with password stored corresponding to mobile number in database
+const createUser = (connection, mobileNumber, password) => {
+  const query = "INSERT INTO userinfo (mobile_number, password) VALUES (?, ?)";
+  return new Promise((resolve, reject) => {
+    connection.query(query, [mobileNumber, password], (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
 
-//function to add new user entry in database
-
+module.exports = { getUserByMobileNumber, createUser };
