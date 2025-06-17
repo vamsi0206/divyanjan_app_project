@@ -51,20 +51,10 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  void _tryLogin() async{
+    void _tryLogin() async
+  {
     if (_formKey.currentState!.validate()) {
-
-      // showDialog(
-      //   context:context,
-      //   barrierDismissible:false,
-      //   builder : (context) => Center(child: CircularProgressIndicator())
-      // );
-
-      //Call the API
       await _loginUser();
-
-      //Dismiss loading indicator
-      // Navigator.of(context).pop();
     }
   }
   Future<void> _loginUser() async {
@@ -72,7 +62,7 @@ class _HomeState extends State<Home> {
     final navigator=Navigator.of(context);
 
     try{
-        final url = Uri.parse('http://192.168.77.133:3000/api/login');
+        final url = Uri.parse('http://192.168.137.1:3000/api/login');
         final headers = {'Content-Type' : 'application/json; charset=UTF-8'};
         final body=jsonEncode({
           'mobile-number':_mobileController.text.trim(),
