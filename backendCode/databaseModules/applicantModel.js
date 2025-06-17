@@ -40,4 +40,24 @@ const createUser = (connection, userData) => {
   });
 };
 
-module.exports = { getUserByMobileNumber, createUser };
+const updateApplicantDetails = (connection, mobileNumber, fields) => {
+  const sets = [];
+  const values = [];
+  for (const key in fields) {
+    sets.push(`${key} = ?`);
+    values.push(fields[key]);
+  }
+  if (sets.length === 0) {
+    return Promise.resolve();
+  }
+  const sql = `UPDATE applicant SET ${sets.join(', ')} WHERE mobile_number = ?`;
+  values.push(mobileNumber);
+  return new Promise((resolve, reject) => {
+    connection.query(sql, values, (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+};
+
+module.exports = { getUserByMobileNumber, createUser, updateApplicantDetails };

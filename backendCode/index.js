@@ -9,6 +9,7 @@ const port = 3000;
 
 const applicantLoginRoute = require('./routes/applicantLoginRoute')
 const applicantRegisterRoute = require('./routes/applicantRegisterRoute')
+const updateUserApplicationRoute = require('./routes/updateUserApplication')
 
 
 app.use(cors()); // Allow requests from different origins (like your Flutter app)
@@ -37,6 +38,7 @@ connection.connect((err) => {
 
     app.use('/', applicantLoginRoute(connection))
     app.use('/', applicantRegisterRoute(connection))
+    app.use('/', updateUserApplicationRoute(connection))
 
     app.listen(port, "0.0.0.0", () => {
         console.log(`Backend server running on http://0.0.0.0:${port}`);
