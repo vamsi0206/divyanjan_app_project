@@ -62,10 +62,10 @@ class _HomeState extends State<Home> {
     final navigator=Navigator.of(context);
 
     try{
-        final url = Uri.parse('http://192.168.137.1:3000/api/login');
+        final url = Uri.parse('http://172.20.10.2:3000/login');
         final headers = {'Content-Type' : 'application/json; charset=UTF-8'};
         final body=jsonEncode({
-          'mobile-number':_mobileController.text.trim(),
+          'mobile_number':_mobileController.text.trim(),
           'password' : _passwordController.text.trim(),
         });
         //Make the HTTP POST request to the server
@@ -74,7 +74,7 @@ class _HomeState extends State<Home> {
         final responseData=jsonDecode(response.body);
         //Handle the server response
         if(response.statusCode==200){
-          if(responseData['status']==true){
+          if(responseData['message']=='login successful'){
             // print(responseData['message']);
             scaffoldMessenger.showSnackBar(
               SnackBar(content:Text('Login Successful')),
