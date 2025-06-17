@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'main.dart';
 
 
 void main() => runApp(MaterialApp(
@@ -16,6 +19,9 @@ class NewUserPage extends StatefulWidget {
 
 
 class _HomeState extends State<NewUserPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _mobileController = TextEditingController();
   bool isButtonEnabled = false;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -23,6 +29,11 @@ class _HomeState extends State<NewUserPage> {
   bool _isConfirmPasswordVisible = false;
   final _emailController = TextEditingController();
 
+  void _onEmailChanged(String value) {
+    setState(() {
+      isButtonEnabled = isValidGmail(value);
+    });
+  }
 
 
 
@@ -51,29 +62,81 @@ class _HomeState extends State<NewUserPage> {
 
 
 
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _mobileController = TextEditingController();
+  // final _formKey = GlobalKey<FormState>();
+  // final _nameController = TextEditingController();
+  // final _mobileController = TextEditingController();
 
 
 
   String selectedGender = 'Male';
-  String selectedCategory = '1)Hearing and Speech Impairement Totally Both Afflictions Together';
+  String selectedCategory = 'Hearing and Speech Impairement Totally Both Afflictions Together';
   bool isConfirmed = false;
 
-  void _tryLogin() {
-    if (_formKey.currentState!.validate()) {
-      print('Form Submitted');
-      print('Name: ${_nameController.text}');
-      print('Mobile: ${_mobileController.text}');
-      // You can also show a snackbar or navigate to another screen here
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Form Submitted Successfully ✅')),
-      );
-    } else {
-      print('Form validation failed ❌');
+  bool isValidGmail(String email) {
+    final gmailPattern = r'^[\w\.-]+@gmail\.com$';
+    return RegExp(gmailPattern).hasMatch(email.trim());
+  }
+
+
+  //   if (_formKey.currentState!.validate()) {
+  //     print('Form Submitted');
+  //     print('Name: ${_nameController.text}');
+  //     print('Mobile: ${_mobileController.text}');
+  //     // You can also show a snackbar or navigate to another screen here
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Form Submitted Successfully ✅')),
+  //     );
+  //   } else {
+  //     print('Form validation failed ❌');
+  //   }
+  // }
+  void _trySubmit() async{
+    if(_formKey.currentState!.validate()){
+      await _submitNewUser();
     }
   }
+   Future<void> _submitNewUser() async{
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try{
+      final url=Uri.parse('http://192.168.137.1:3000/api/register');
+      final headers={'Content-Type': 'application/json; charset=UTF-8'};
+      final body= jsonEncode({
+        'name':_nameController.text.trim(),
+        'phone_number': _mobileController.text.trim(),
+        'email':_emailController.text.trim(),
+        'password':_passwordController.text.trim(),
+        'gender':selectedGender,
+        'disability_type':selectedCategory,
+      });
+      final response=await http.post(url,headers:headers,body:body);
+      final responseData=jsonDecode(response.body);
+      if(response.statusCode==200 || response.statusCode == 201){
+        if(responseData['status']==true){
+          scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text('Registration Successful')),
+          );
+          navigator.pushReplacement(
+            MaterialPageRoute(builder:(_) => Home()),
+          );
+        }else{
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text(responseData['message'] ?? 'Registration failed')),
+          );
+        }
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(responseData['message'] ??'Server error: ${response.statusCode}')),
+        );
+      }
+      } catch (e){
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Network error: $e')),
+        );
+    }
+
+    }
+
 
   void _updateButtonState() {
     final isNameValid = _nameController.text.trim().isNotEmpty;
@@ -87,8 +150,6 @@ class _HomeState extends State<NewUserPage> {
       isButtonEnabled = isNameValid && isMobileValid && isCheckboxChecked && isPasswordMatching && isEmailValid;
     });
   }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -358,9 +419,12 @@ class _HomeState extends State<NewUserPage> {
 
                         Container(
                           width: 300,
-                          //height: 60.0,
-                          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                          padding: EdgeInsets.fromLTRB(10.0,1.0,10.0,10.0),
+                          height: 60.0,
+                          margin: EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 20,
+                          ),
+                          padding: EdgeInsets.fromLTRB(10.0, 1.0, 10.0, 10.0),
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: Color.fromARGB(255, 181, 74, 226),
@@ -374,11 +438,19 @@ class _HomeState extends State<NewUserPage> {
                             decoration: InputDecoration(
                               labelText: 'E-mail Id * ',
                             ),
-                            keyboardType: TextInputType.text,
+                            keyboardType: TextInputType.emailAddress,
+                            onChanged: _onEmailChanged,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Email is required';
                               }
+
+                              final emailPattern = r'^[\w\.-]+@gmail\.com$';
+                              final regex = RegExp(emailPattern);
+                              if (!regex.hasMatch(value.trim())) {
+                                return 'Enter a valid email ending with @gmail.com';
+                              }
+
                               return null;
                             },
                           ),
@@ -468,7 +540,7 @@ class _HomeState extends State<NewUserPage> {
                                     value: selectedCategory,
                                     isExpanded: true,
                                     underline: SizedBox(),
-                                    items: ['1)Hearing and Speech Impairement Totally Both Afflictions Together', '2)Orthopaedically Handicapped/Paraplegic/Patients who cannot travel without an escort', '3)Persons with Blindness (Total absence of sight or as per RlyBoard CC 1 of 2025)', '4)Persons with Intellectual Disability who cannot travel without an escort']
+                                    items: ['Hearing and Speech Impairement Totally Both Afflictions Together', 'Orthopaedically Handicapped/Paraplegic/Patients who cannot travel without an escort', 'Persons with Blindness (Total absence of sight or as per RlyBoard CC 1 of 2025)', 'Persons with Intellectual Disability who cannot travel without an escort']
                                         .map((category) => DropdownMenuItem(
                                       value: category,
                                       child: Text(category),
@@ -534,7 +606,7 @@ class _HomeState extends State<NewUserPage> {
                               height: 45,
                               child: ElevatedButton(
 
-                                onPressed: isButtonEnabled ? _tryLogin : null,
+                                onPressed: isButtonEnabled ? _trySubmit : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isButtonEnabled ? Color(0xFFFFDD00) : Colors.grey[400],
                                   foregroundColor: Colors.black,
