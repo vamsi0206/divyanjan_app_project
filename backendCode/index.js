@@ -10,20 +10,24 @@ const port = 3000;
 const applicantLoginRoute = require('./routes/applicantLoginRoute')
 const applicantRegisterRoute = require('./routes/applicantRegisterRoute')
 const updateUserApplicationRoute = require('./routes/updateUserApplication')
-
+const dotenv=require('dotenv')
 
 app.use(cors()); // Allow requests from different origins (like your Flutter app)
 app.use(bodyParser.json()); // This is CRUCIAL: it makes Express understand JSON data sent in the request body
 app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded data (good to include)
 
 
+//SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
+//dotenv.config({path:'./configRaheel.env'}); //For raheel's device
+dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+
 
 //connecting with the database
 var connection = mysql.createConnection({
-  host: "localhost",
-  user: "hellojee",
-  password: "Cris1234@",
-  database: "mydb"
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE
 });
 
 // Try to connect to the MySQL database
