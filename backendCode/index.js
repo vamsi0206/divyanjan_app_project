@@ -1,6 +1,6 @@
 const express = require('express');
 const session = require('express-session')
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const cors = require('cors')
 const bodyParser = require('body-parser')
 
@@ -18,8 +18,17 @@ app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded d
 
 
 //SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
-dotenv.config({path:'./configRaheel.env'}); //For raheel's device
+dotenv.config({path:'backendCode\configRaheel.env'}); //For raheel's device
 //dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+
+// >>>>> ADD THESE DEBUGGING CONSOLE LOGS HERE <<<<<
+console.log('--- Environment Variables Loaded ---');
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_DATABASE:', process.env.DB_DATABASE);
+// console.log('DB_PASSWORD:', process.env.DB_PASSWORD); // Temporarily enable for debugging, but be careful not to commit this!
+console.log('------------------------------------');
+// >>>>> END OF DEBUGGING CONSOLE LOGS <<<<<
 
 
 //connecting with the database
