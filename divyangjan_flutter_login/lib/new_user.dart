@@ -99,20 +99,20 @@ class _HomeState extends State<NewUserPage> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     try{
-      final url=Uri.parse('http://192.168.137.1:3000/api/register');
+      final url=Uri.parse('http://172.20.10.2:3000/register');
       final headers={'Content-Type': 'application/json; charset=UTF-8'};
       final body= jsonEncode({
         'name':_nameController.text.trim(),
-        'phone_number': _mobileController.text.trim(),
-        'email':_emailController.text.trim(),
+        'mobile_number': _mobileController.text.trim(),
+        'email_id':_emailController.text.trim(),
         'password':_passwordController.text.trim(),
         'gender':selectedGender,
-        'disability_type':selectedCategory,
+        'disability_type_id':selectedCategory,
       });
       final response=await http.post(url,headers:headers,body:body);
       final responseData=jsonDecode(response.body);
       if(response.statusCode==200 || response.statusCode == 201){
-        if(responseData['status']==true){
+        if(responseData['message']=='registration successful'){
           scaffoldMessenger.showSnackBar(
               SnackBar(content: Text('Registration Successful')),
           );
