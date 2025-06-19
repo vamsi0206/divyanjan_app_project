@@ -59,5 +59,42 @@ const updateApplicantDetails = (connection, mobileNumber, fields) => {
     });
   });
 };
+const getApplicationByMobileNumber = (connection, mobileNumber) => {
+  const query = "SELECT submission_date FROM application WHERE mobile_number = ?";
+  return new Promise((resolve, reject) => {
+    connection.query(query, [mobileNumber], (err, results) => {
+      if (err) return reject(err);
+      resolve(results[0] || {});
+    });
+  });
+};
 
-module.exports = { getUserByMobileNumber, createUser, updateApplicantDetails };
+const submitApplication = (connection, mobileNumber, fields) => {
+  const applicantSets = [];
+  const values = [];
+  for (const key in fields) {
+    applicantSets.push(`${key} = ?`);
+    values.push(fields[key]);
+  }
+  applicantSets.push("submitted = 'submitted'");
+  const applicantSql = `UPDATE applicant SET ${applicantSets.join(', ')} WHERE mobile_number = ?`;
+  values.push(mobileNumber);
+  return new Promise((resolve, reject) => {
+    connection.query(applicantSql, values, (err) => {
+      if (err) return reject(err);
+      const appSql = "UPDATE application SET submission_date = NOW() WHERE mobile_number = ?";
+      connection.query(appSql, [mobileNumber], (err2, result) => {
+        if (err2) return reject(err2);
+        resolve(result);
+      });
+    });
+  });
+};
+
+module.exports = {
+  getUserByMobileNumber,
+  createUser,
+  updateApplicantDetails,
+  getApplicationByMobileNumber,
+  submitApplication,
+};
