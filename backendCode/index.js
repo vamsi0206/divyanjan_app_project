@@ -18,8 +18,8 @@ app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded d
 
 
 //SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
-dotenv.config({path:'./configRaheel.env'}); //For raheel's device
-//dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+//dotenv.config({path:'./configRaheel.env'}); //For raheel's device
+dotenv.config({path:'./configRis.env'}); // For Rishabh's device
 
 // >>>>> ADD THESE DEBUGGING CONSOLE LOGS HERE <<<<<
 console.log('--- Environment Variables Loaded ---');
