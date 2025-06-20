@@ -98,16 +98,16 @@ CREATE TABLE DisabilityCertificate (
 CREATE TABLE ApplicationLog (
     log_id INT PRIMARY KEY AUTO_INCREMENT,
     application_id INT NOT NULL,
-    action_by_user_id INT NOT NULL,
-    user_role ENUM('division_user', 'cmi', 'cis') NOT NULL,
+    action_by_user_id INT NOT NULL,-- dont know what this means and not necessary, delete
+    user_role ENUM('division_user', 'cmi', 'cis') NOT NULL,-- delete FOR  new system
     
     action_type ENUM(
         'assign_doctor', 'assign_station', 'transfer_division', 
         'transfer_doctor', 'reject', 'issue_card', 
         'assigned', 'transferred', 'verified', 'approved'
-    ) NOT NULL,
+    ) NOT NULL,-- not needed, delete
     
-    status ENUM('pending', 'approved', 'rejected') DEFAULT NULL,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT NULL, -- ALREADY THERE IN APPLIATION TABLE, DELETE
     target_station_id INT DEFAULT NULL,
     comments TEXT,
     action_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -116,4 +116,9 @@ CREATE TABLE ApplicationLog (
     FOREIGN KEY (action_by_user_id) REFERENCES Railwayuser(user_id),
     FOREIGN KEY (target_station_id) REFERENCES StationLocation(station_id)
 );
+-- NEED LEVEL
+-- NEED RAILWAY_USER_ID
+-- NEED VALIDATION ID
+-- NEED TO REGISTER DATES OF APPOINTED
+
 -- ===========================================================================================================================================================
