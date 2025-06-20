@@ -15,10 +15,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
-<<<<<<< HEAD:package.json
-=======
     "mysql": "^2.18.1",
->>>>>>> 3d146fc20baa100b23cd8ed57517d50ef51be9bc:backendCode/package.json
     "mysql2": "^3.14.1"
   }
 }
