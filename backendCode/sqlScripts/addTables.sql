@@ -46,7 +46,8 @@ CREATE TABLE Railwayuser (
 CREATE TABLE Application (
     application_id INT PRIMARY KEY,
     applicant_id INT NOT NULL,
-    submission_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    submission_date DATETIME DEFAULT CURRENT_TIMESTAMP, -- or in other words receive date
+    process_date  DATETIME ,
     status ENUM('submitted', 'approved', 'assigned', 'rejected'), -- should just be submitted, approved and assigned, rejected
     current_division_id INT NOT NULL,
     card_number VARCHAR(20),
@@ -110,8 +111,8 @@ CREATE TABLE ApplicationLog (
     -- action_date DATETIME DEFAULT CURRENT_TIMESTAMP, --delete
     validation_id ENUM('0', '1') NOT NULL,
     current_level ENUM('applicant', '1', '2', '3')
-    assign_date DATETIME,
-    level_passed_date DATETIME
+    assign_date DATETIME,  -- or in other words receive date
+    level_passed_date DATETIME -- or in other words processed date
 
     FOREIGN KEY (application_id) REFERENCES Application(application_id),
     -- FOREIGN KEY (action_by_user_id) REFERENCES Railwayuser(user_id),
