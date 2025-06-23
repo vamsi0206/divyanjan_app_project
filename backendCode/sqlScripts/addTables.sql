@@ -16,7 +16,7 @@ CREATE TABLE Applicant (
     applicant_id INT PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
     mobile_number VARCHAR(10) NOT NULL,
-    aadhar_id VARCHAR(12),  -- not required, delete
+    --aadhar_id VARCHAR(12),  -- not required, delete
     date_of_birth DATE NOT NULL,
     gender VARCHAR(6) NOT NULL,
     address VARCHAR(25),
@@ -47,17 +47,14 @@ CREATE TABLE Application (
     application_id INT PRIMARY KEY,
     applicant_id INT NOT NULL,
     submission_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('submitted', 'assigned_doctor', 'assigned_station', 'rejected', 'transferred', 'issued'), -- should just be submitted, approved and assigned, rejected
+    status ENUM('submitted', 'approved', 'assigned', 'rejected'), -- should just be submitted, approved and assigned, rejected
     current_division_id INT NOT NULL,
-    current_division_user_id INT NOT NULL, -- not required here, move to applicationlog table
-    current_cmi_id INT, -- not required here, move to applicationlog table
-    current_cis_id INT, -- not required here, move to applicationlog table
     card_number VARCHAR(20),
     card_issue_date DATE,
     Authorname VARCHAR(255), -- dont remember what this is
-    FOREIGN KEY (applicant_id) REFERENCES Applicant(applicant_id),
-    FOREIGN KEY (current_cmi_id) REFERENCES Railwayuser(user_id),
-    FOREIGN KEY (current_cis_id) REFERENCES Railwayuser(user_id)
+    -- FOREIGN KEY (applicant_id) REFERENCES Applicant(applicant_id),
+    -- FOREIGN KEY (current_cmi_id) REFERENCES Railwayuser(user_id),
+    -- FOREIGN KEY (current_cis_id) REFERENCES Railwayuser(user_id)
 );
 
 -- DOCUMENT ------------------------------------------------------------------------------to be implemented at end----------------------------------------------------------------
@@ -98,23 +95,27 @@ CREATE TABLE DisabilityCertificate (
 CREATE TABLE ApplicationLog (
     log_id INT PRIMARY KEY AUTO_INCREMENT,
     application_id INT NOT NULL,
-    action_by_user_id INT NOT NULL,-- dont know what this means and not necessary, delete
-    user_role ENUM('division_user', 'cmi', 'cis') NOT NULL,-- delete FOR  new system
+    -- action_by_user_id INT NOT NULL,-- dont know what this means and not necessary, delete
+    -- user_role ENUM('division_user', 'cmi', 'cis') NOT NULL,-- delete FOR  new system
     
-    action_type ENUM(
-        'assign_doctor', 'assign_station', 'transfer_division', 
-        'transfer_doctor', 'reject', 'issue_card', 
-        'assigned', 'transferred', 'verified', 'approved'
-    ) NOT NULL,-- not needed, delete
+    -- action_type ENUM(
+    --     'assign_doctor', 'assign_station', 'transfer_division', 
+    --     'transfer_doctor', 'reject', 'issue_card', 
+    --     'assigned', 'transferred', 'verified', 'approved'
+    -- ) NOT NULL,-- not needed, delete
     
-    status ENUM('pending', 'approved', 'rejected') DEFAULT NULL, -- ALREADY THERE IN APPLIATION TABLE, DELETE
-    target_station_id INT DEFAULT NULL,
+    status ENUM('pending', 'draft', 'rejected', 'assign') DEFAULT NULL,
+    station_id INT DEFAULT NULL,
     comments TEXT,
-    action_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    -- action_date DATETIME DEFAULT CURRENT_TIMESTAMP, --delete
+    validation_id ENUM('0', '1') NOT NULL,
+    current_level ENUM('applicant', '1', '2', '3')
+    assign_date DATETIME,
+    level_passed_date DATETIME
 
     FOREIGN KEY (application_id) REFERENCES Application(application_id),
-    FOREIGN KEY (action_by_user_id) REFERENCES Railwayuser(user_id),
-    FOREIGN KEY (target_station_id) REFERENCES StationLocation(station_id)
+    -- FOREIGN KEY (action_by_user_id) REFERENCES Railwayuser(user_id),
+    FOREIGN KEY (station_id) REFERENCES StationLocation(station_id)
 );
 -- NEED LEVEL
 -- NEED RAILWAY_USER_ID
