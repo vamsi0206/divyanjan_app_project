@@ -1,38 +1,59 @@
 const express = require('express');
 const { getUserByMobileNumber } = require('../databaseModules/applicantModel');
 const router = express.Router();
-const {getAllPendingApplications}=require('.../databaseModules/applicationModel')
+const { getApplicationsByEmployeeLevel } = require('../databaseModules/applicationModel');
 
 module.exports = (connection) => {
 
 router.post('/employeePage/submit/:appid', async (req, res) => {
-    var appid=req.params.appid;
-    console.log(id);
+    var appid = req.params.appid;
+    console.log(appid);
     //change status of application to accept or reject
-
+    // TODO: Implement application status change logic
+    return res.status(200).json({ message: 'Application action endpoint - implementation pending' });
 });
 
-router.get('/employeePage/',async (req,res)=>{
-    //SHOULD ALL PAGES AND ACTIONS HAVE A CONSISTENT UNIFORM FORMAT OF JSON RESPONSE ??
-    //IF YES WE NEED TO ALSO ACCOMODATE RESULT OF DATABASE QUERIES APPROPRIATELY
-    //get all applications from applications table that have status as submitted
+router.get('/employeePage/:employeeLevel/:employeeId', async (req, res) => {
+    const current_level = req.params.employeeLevel;
+    const user_id = req.params.employeeId;
+    
+    // Validate employee level
+    if (!['1', '2', '3'].includes(current_level)) {
+        return res.status(400).json({ message: 'Invalid employee level. Must be 1, 2, or 3.' });
+    }
+    
     try {
-        const allApplications=await getAllPendingApplications(connection);
-        if(allApplications)
-            return res.status(200).json(allApplications)
-        return res.status(404).json({message:'Empty response' })
+        const applications = await getApplicationsByEmployeeLevel(connection, current_level, user_id);
+        
+        if (applications && applications.length > 0) {
+            return res.status(200).json({
+                success: true,
+                data: applications,
+                count: applications.length,
+                employeeLevel: current_level,
+                processableLevel: current_level === '1' ? 'applicant' : 
+                                 current_level === '2' ? '1' : '2'
+            });
+        }
+        
+        return res.status(200).json({
+            success: true,
+            data: [],
+            count: 0,
+            message: 'No applications found for your level',
+            employeeLevel: current_level,
+            processableLevel: current_level === '1' ? 'applicant' : 
+                             current_level === '2' ? '1' : '2'
+        });
 
+    } catch (err) {
+        console.log('Error fetching applications', err);
+        return res.status(500).json({ 
+            success: false,
+            message: 'Error occurred while fetching applications' 
+        });
     }
-    catch(err)
-    {
-        console.log('Error fetching applications',err);
-        return res.status(500).json({message:'Error occured while fetching messages'})
-    }
-
-    
-    
-
-})
+});
 
 return router;
 

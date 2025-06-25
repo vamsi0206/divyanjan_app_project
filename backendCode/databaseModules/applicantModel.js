@@ -59,6 +59,7 @@ const updateApplicantDetails = (connection, mobileNumber, fields) => {
     });
   });
 };
+
 const getApplicationByMobileNumber = (connection, mobileNumber) => {
   const query = "SELECT submission_date FROM application WHERE mobile_number = ?";
   return new Promise((resolve, reject) => {

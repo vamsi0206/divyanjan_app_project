@@ -15,12 +15,14 @@ const port = 3000;
 const applicantLoginRoute = require('./routes/applicantLoginRoute')
 const applicantRegisterRoute = require('./routes/applicantRegisterRoute')
 const updateUserApplicationRoute = require('./routes/updateUserApplication')
-
+const applicantDashboardRoute = require('./routes/applicantDashboard')
+const employeeDashboardRoute = require('./routes/employeeDashboard')
+const applicationActionRoute = require('./routes/applicationAction')
+const reportRoute = require('./routes/report')
 
 app.use(cors()); // Allow requests from different origins (like your Flutter app)
 app.use(bodyParser.json()); // This is CRUCIAL: it makes Express understand JSON data sent in the request body
 app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded data (good to include)
-
 
 //connecting with the database
 var connection = mysql.createConnection({
@@ -43,6 +45,10 @@ connection.connect((err) => {
     app.use('/', applicantLoginRoute(connection))
     app.use('/', applicantRegisterRoute(connection))
     app.use('/', updateUserApplicationRoute(connection))
+    app.use('/', applicantDashboardRoute(connection))
+    app.use('/', employeeDashboardRoute(connection))
+    app.use('/', applicationActionRoute(connection))
+    app.use('/', reportRoute(connection))
 
     app.listen(port, "0.0.0.0", () => {
         console.log(`Backend server running on http://0.0.0.0:${port}`);

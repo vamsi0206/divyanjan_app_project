@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const {getFilteredPendingApplications}=require('.../databaseModules/applicationModel')
+const { getFilteredPendingApplications } = require('../databaseModules/applicationModel');
 
 module.exports = (connection) => {
 
-
 // Express route to handle dynamic filtering
-app.get('/queryApplications', async (req, res) => {
+router.get('/queryApplications', async (req, res) => {
     try {
         // Extract query parameters and build filter object
         const filters = {};
