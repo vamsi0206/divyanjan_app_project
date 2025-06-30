@@ -5,15 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'new_user.dart';
-
 import 'staff_login.dart';
 import 'applicant_dashboard.dart';
-
-
+import 'user_session.dart';
 
 void main() => runApp(MaterialApp(
   theme: ThemeData(
-    fontFamily: 'InriaSans'
+      fontFamily: 'InriaSans'
   ),
   home: Home(),
 ));
@@ -51,48 +49,48 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-    void _tryLogin() async
-  {
+  void _tryLogin() async {
     if (_formKey.currentState!.validate()) {
       await _loginUser();
     }
   }
+
   Future<void> _loginUser() async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final navigator=Navigator.of(context);
+    final navigator = Navigator.of(context);
 
-    try{
-        final url = Uri.parse('http://172.20.10.2:3000/login');
-        final headers = {'Content-Type' : 'application/json; charset=UTF-8'};
-        final body=jsonEncode({
-          'mobile_number':_mobileController.text.trim(),
-          'password' : _passwordController.text.trim(),
-        });
-        //Make the HTTP POST request to the server
-        final response=await http.post(url,headers:headers,body:body);
-        //Decode the JSON response from the server
-        final responseData=jsonDecode(response.body);
-        //Handle the server response
-        if(response.statusCode==200){
-          if(responseData['message']=='login successful'){
-            // print(responseData['message']);
-            scaffoldMessenger.showSnackBar(
-              SnackBar(content:Text('Login Successful')),
-            );
-            navigator.pushReplacement(
-              MaterialPageRoute(builder: (_) => MyHomePage(title: 'Flutter Demo Home Page')),
-            );
-          }else{
-             scaffoldMessenger.showSnackBar(
-               SnackBar(content: Text('Invalid Credentials')),
-             );
-          }
-        }else {
-          // If the server returns an error status code, show a generic server error message
+    try {
+      final url = Uri.parse('http://172.20.10.2:3000/login');
+      final headers = {'Content-Type': 'application/json; charset=UTF-8'};
+      final body = jsonEncode({
+        'mobile_number': _mobileController.text.trim(),
+        'password': _passwordController.text.trim(),
+      });
+      //Make the HTTP POST request to the server
+      final response = await http.post(url, headers: headers, body: body);
+      //Decode the JSON response from the server
+      final responseData = jsonDecode(response.body);
+      //Handle the server response
+      if (response.statusCode == 200) {
+        if (responseData['message'] == 'login successful') {
+          UserSession().applicant_id = responseData['applicant_id'];
           scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text('Server error: ${response.statusCode}')),
+            SnackBar(content: Text('Login Successful')),
+          );
+          navigator.pushReplacement(
+            MaterialPageRoute(builder: (_) => ApplicantPage()),
+          );
+        } else {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text('Invalid Credentials')),
           );
         }
+      } else {
+        // If the server returns an error status code, show a generic server error message
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Server error: ${response.statusCode}')),
+        );
+      }
     } catch (e) {
       // If there is a network or other error, show a network error message
       scaffoldMessenger.showSnackBar(
@@ -100,7 +98,6 @@ class _HomeState extends State<Home> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -111,13 +108,11 @@ class _HomeState extends State<Home> {
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(20),
             bottomRight: Radius.circular(20),
-
           ),
           child: AppBar(
             backgroundColor: Color.fromARGB(255, 181, 74, 226),
             centerTitle: true,
             elevation: 0.0,
-
             leading: Padding(
               padding: EdgeInsets.all(8.0),
               child: Image.asset(
@@ -146,14 +141,11 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
-
             actions: [
               IconButton(
-
                 icon: Icon(Icons.phone),
                 tooltip: 'contact information',
                 onPressed: () {},
-
               )
             ],
           ),
@@ -191,25 +183,23 @@ class _HomeState extends State<Home> {
                       'APPLICANT LOGIN',
                       style: TextStyle(
                         fontFamily: 'InriaSans',
-
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color:Colors.black87,
+                        color: Colors.black87,
                       ),
-
                     ),
                     SizedBox(height: 10),
-
-                    Image.asset('assets/divyangjan_logo.jpg',
+                    Image.asset(
+                      'assets/divyangjan_logo.jpg',
                       height: 150,
                       width: 150,
                     ),
                     SizedBox(height: 10),
-
                     Container(
                       width: 350,
-                      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                      padding: EdgeInsets.fromLTRB(10.0,1.0,10.0,10.0),
+                      margin: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
+                      padding: EdgeInsets.fromLTRB(10.0, 1.0, 10.0, 10.0),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Color.fromARGB(255, 181, 74, 226),
@@ -227,25 +217,22 @@ class _HomeState extends State<Home> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(10),
                         ],
-                        validator: (value){
-                          if(value == null || value.trim().isEmpty){
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please Enter your mobile number';
-                          }else if (value.trim().length != 10) {
+                          } else if (value.trim().length != 10) {
                             return 'Mobile number must be exactly 10 digits';
                           }
                           return null;
                         },
                       ),
                     ),
-
-
-
                     SizedBox(height: 10.0),
-
                     Container(
                       width: 350,
-                      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                      padding: EdgeInsets.fromLTRB(10.0,1.0,10.0,10.0),
+                      margin: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
+                      padding: EdgeInsets.fromLTRB(10.0, 1.0, 10.0, 10.0),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Color.fromARGB(255, 181, 74, 226),
@@ -255,44 +242,40 @@ class _HomeState extends State<Home> {
                       ),
                       child: TextFormField(
                         controller: _passwordController,
-                        obscureText:! _isPasswordVisible,
+                        obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           labelText: 'Enter Your Password * ',
-                          suffixIcon:  IconButton(
+                          suffixIcon: IconButton(
                             icon: Icon(
-                              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                               color: Colors.grey,
                             ),
-                            onPressed: (){
+                            onPressed: () {
                               setState(() {
                                 _isPasswordVisible = !_isPasswordVisible;
                               });
                             },
                           ),
                         ),
-
                         keyboardType: TextInputType.text,
-                        validator: (value){
-                          if(value == null || value.trim().isEmpty){
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
                             return 'Please Enter your password';
                           }
                           return null;
                         },
                       ),
                     ),
-
                     SizedBox(height: 10.0),
-
                     SizedBox(
                       width: 300,
                       height: 45,
                       child: ElevatedButton(
-                        onPressed: isButtonEnabled ? _tryLogin:  null,
-
-
+                        onPressed: isButtonEnabled ? _tryLogin : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFFFDD00),
-
                           foregroundColor: Colors.black,
                           elevation: 9.0,
                           shadowColor: Colors.grey.withOpacity(0.4),
@@ -311,9 +294,7 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     ),
-
                     SizedBox(height: 20.0),
-
                     Container(
                       width: 300,
                       child: Row(
@@ -323,7 +304,8 @@ class _HomeState extends State<Home> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => StaffPage()),
+                                MaterialPageRoute(
+                                    builder: (_) => StaffPage()),
                               );
                             },
                             child: Text(
@@ -331,7 +313,6 @@ class _HomeState extends State<Home> {
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF003BFF),
-
                               ),
                             ),
                           ),
@@ -339,7 +320,8 @@ class _HomeState extends State<Home> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => NewUserPage()),
+                                MaterialPageRoute(
+                                    builder: (_) => NewUserPage()),
                               );
                             },
                             child: Text(
@@ -347,43 +329,33 @@ class _HomeState extends State<Home> {
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF003BFF),
-
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-
                     SizedBox(height: 20.0),
-
-
                     Center(
                       child: GestureDetector(
                         onTap: () {
                           print("user manual tapped");
                           // Navigator.push(context, MaterialPageRoute(builder: (_) => NewUserPage()));
                         },
-
                         child: Text(
                           'User Manual',
                           style: TextStyle(
                             fontSize: 16,
                             color: Color(0xFF003BFF),
                           ),
-
                         ),
                       ),
                     ),
-
                   ],
                 ),
-
               ),
             ),
           ],
-
         ),
       ),
     );
