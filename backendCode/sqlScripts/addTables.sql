@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS Application;
 DROP TABLE IF EXISTS Railwayuser;
 DROP TABLE IF EXISTS Applicant;
 DROP TABLE IF EXISTS StationLocation;
-
+DROP TABLE IF EXISTS DivisionCardSerialNumber;
 -- FOR Station detail
 CREATE TABLE StationLocation (
     station_id INT PRIMARY KEY,
@@ -17,7 +17,16 @@ CREATE TABLE StationLocation (
     statename VARCHAR(20) NOT NULL,
     Divisionname VARCHAR(20) NOT NULL
 );
+-- division 
+--last generated card serial number table
+CREATE TABLE DivisionCardSerialNumber
+(
+    division_id INT PRIMARY KEY,
+    Divisionname VARCHAR(20) NOT NULL,
+    last_card_id INT 
 
+)
+--TODO
 -- Applicant table -- CORRECTED ENUM FOR 'status'
 CREATE TABLE Applicant (
     applicant_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -47,9 +56,10 @@ CREATE TABLE Railwayuser (
     mobile_number VARCHAR(15) NOT NULL,
     email VARCHAR(50) NOT NULL,
     current_level ENUM('1', '2', '3') NOT NULL,
+    station_id INT,
+    --can use sql join(with stationLocationTable) to fetch division_id and statename while registering user to avoid inconsistency
     division_id INT,
     statename VARCHAR(20),
-    station_id INT,
     validity_id ENUM('0', '1') NOT NULL,
     FOREIGN KEY (station_id) REFERENCES StationLocation(station_id)
 );
@@ -60,6 +70,7 @@ CREATE TABLE Application (
     submission_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     process_date DATETIME,
     status ENUM('submitted', 'approved', 'assigned', 'rejected', 'draft'),
+    station_id ,
     current_division_id INT NOT NULL,
     card_number VARCHAR(20),
     card_issue_date DATE,
@@ -103,13 +114,43 @@ CREATE TABLE ApplicationLog (
     station_id INT DEFAULT NULL,
     comments TEXT,
     validation_id ENUM('0', '1') NOT NULL,
-    current_level ENUM('0', '1', '2', '3'),
-    assign_date DATETIME,
-    level_passed_date DATETIME,
+    current_level ENUM('0', '1', '2', '3'), --level 0 is user
+    assign_date DATETIME, --recieve
+    level_passed_date DATETIME,--process 
     validity_id ENUM('0', '1') NOT NULL,
+    generated_card_id, --ADDED , NULLABLE SINCE ONLY APPLICABLE FOR LEVEL3
     FOREIGN KEY (application_id) REFERENCES Application(application_id),
     FOREIGN KEY (station_id) REFERENCES StationLocation(station_id)
 );
+-- FOR ACCESSING CARD DETAILS
+--option1 : use application log table and do sql join to extract details from other tables
+--option2 :separate card log table with each field
+-- CardLog
+-- (
+--     card_id PRIMARY KEY,
+
+--     bookingName varchar(20)    ,
+
+--     Name_of_hospital varchar(),
+--     Name_of_doctor  varchar(),
+--     RegistrationNoOfDoctor varchar(),
+--     
+--     --Card detail
+--     --concession   card_status {enable, disable,block} ,--also delete option
+--     card_valid_from DATETIME,
+--     card_valid_upto DATETIME,
+--     concession_certificate_issue_date DATETIME,
+--     -- Card holder detail
+--     name varchar(20)        ,
+--     applicant_id,
+--     date_of_birth DATETIME,
+--     -- division/station detail
+--     station_id,
+--     --Handicap card detail
+--     --validity period??
+--     -- comments  varchar(20) --(only if adding card status update)
+--     --card_status --(only if adding card status update)
+-- )
 
 -- Populate StationLocation Table
 INSERT INTO StationLocation (station_id, stationname, statename, Divisionname) VALUES
