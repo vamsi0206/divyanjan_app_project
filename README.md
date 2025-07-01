@@ -70,11 +70,13 @@ Invoke-RestMethod -Uri "http://localhost:3000/applicantLogin/login" `
 ```
 
 ## todos
-Execute and check functioning of http requests to perform functions in database
-Redefine database schema and create table queries based on suggestions.
-Add code to execute create database and create table operations
+- [x] Execute and check functioning of http requests to perform functions in database
+- [x] Redefine database schema and create table queries based on suggestions.
+- [x] Add code to execute create database and create table operations
+- [ ] Implement redirects
 Maintain user sessions in database and using cookies
 
+## List of redirects
 
 
 ## description of some libraries used 

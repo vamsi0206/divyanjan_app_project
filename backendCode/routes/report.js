@@ -5,7 +5,7 @@ const { getFilteredPendingApplications } = require('../databaseModules/applicati
 module.exports = (connection) => {
 
 // Express route to handle dynamic filtering
-router.get('/queryApplications', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         // Extract query parameters and build filter object
         const filters = {};

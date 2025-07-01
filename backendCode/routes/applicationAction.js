@@ -5,7 +5,7 @@ const { getFilteredPendingApplications, viewApplicationById, setApplicationStatu
 module.exports = (connection) => {
 
 // view an application with given id
-router.get('/applicationAction/:applicationId/view', async (req, res) => {
+router.get('/:applicationId/view', async (req, res) => {
   // Extract query parameters 
   let applicationId = req.params.applicationId;
   try {
@@ -18,7 +18,7 @@ router.get('/applicationAction/:applicationId/view', async (req, res) => {
   }
 });
 
-router.post('/applicationAction/:applicationId/:actionType', async (req, res) => {
+router.post('/:applicationId/:actionType', async (req, res) => {
   // Extract query parameters 
   let applicationId = req.params.applicationId;
   let actionType = req.params.actionType;

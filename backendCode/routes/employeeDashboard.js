@@ -5,7 +5,7 @@ const { getApplicationsByEmployeeLevel } = require('../databaseModules/applicati
 
 module.exports = (connection) => {
 
-router.post('/employeePage/submit/:appid', async (req, res) => {
+router.post('/submit/:appid', async (req, res) => {
     var appid = req.params.appid;
     console.log(appid);
     //change status of application to accept or reject
@@ -13,7 +13,7 @@ router.post('/employeePage/submit/:appid', async (req, res) => {
     return res.status(200).json({ message: 'Application action endpoint - implementation pending' });
 });
 
-router.get('/employeePage/:employeeLevel/:employeeId', async (req, res) => {
+router.get('/:employeeLevel/:employeeId', async (req, res) => {
     const current_level = req.params.employeeLevel;
     const user_id = req.params.employeeId;
     

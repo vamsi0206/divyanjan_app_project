@@ -6,8 +6,8 @@ const bodyParser = require('body-parser')
 const dotenv=require('dotenv')
 
 //SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
-dotenv.config({path:'configRaheel.env'}); //For raheel's device
-// dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+//dotenv.config({path:'configRaheel.env'}); //For raheel's device
+ dotenv.config({path:'./configRis.env'}); // For Rishabh's device
 
 const app = express();
 const port = 3000;
@@ -42,13 +42,13 @@ connection.connect((err) => {
     }
     console.log('Connected to MySQL database!');
 
-    app.use('/', applicantLoginRoute(connection))
-    app.use('/', applicantRegisterRoute(connection))
-    app.use('/', updateUserApplicationRoute(connection))
-    app.use('/', applicantDashboardRoute(connection))
-    app.use('/', employeeDashboardRoute(connection))
-    app.use('/', applicationActionRoute(connection))
-    app.use('/', reportRoute(connection))
+    app.use('/login', applicantLoginRoute(connection))
+    app.use('/register', applicantRegisterRoute(connection))
+    app.use('/updateUserApplication', updateUserApplicationRoute(connection))
+    app.use('/applicantDashboard', applicantDashboardRoute(connection))
+    app.use('/employeePage', employeeDashboardRoute(connection))
+    app.use('/applicationAction', applicationActionRoute(connection))
+    app.use('/queryApplications', reportRoute(connection))
 
     app.listen(port, "0.0.0.0", () => {
         console.log(`Backend server running on http://0.0.0.0:${port}`);

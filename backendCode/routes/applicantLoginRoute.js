@@ -6,7 +6,7 @@ module.exports = (connection) => {
 
 router.post('/login', async (req, res) => {
   const { mobile_number, password } = req.body;
-
+  console.log(req.body)
   try 
   {
     const users = await getUserByMobileNumber(connection, mobile_number);

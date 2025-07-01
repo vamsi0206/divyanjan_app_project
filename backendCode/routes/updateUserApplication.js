@@ -4,7 +4,7 @@ const router = express.Router();
 
 module.exports = (connection) => {
   // GET route to fetch current applicant fields for pre-filling the form
-  router.get('/updateUserApplication/:applicant_id', async (req, res) => {
+  router.get('/:applicant_id', async (req, res) => {
     const applicant_id = req.params.applicant_id;
     if (!applicant_id) {
       return res.status(400).json({ message: 'applicant_id is required' });

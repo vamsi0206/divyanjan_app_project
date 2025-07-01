@@ -4,7 +4,7 @@ const { getApplicantApplications } = require('../databaseModules/applicationMode
 
 module.exports = (connection) => {
 
-router.get('/applicantDashboard/:applicantId', async (req, res) => {
+router.get('/:applicantId', async (req, res) => {
     const applicantId = req.params.applicantId;
     
     // Validate applicant ID
