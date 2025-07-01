@@ -18,6 +18,8 @@ const createUser = (connection, userData) => {
     'email_id',
     'gender',
     'disability_type_id',
+    'fathers_name',
+    'date_of_birth',
     'registration_date',
     'validity_id'
   ];
@@ -28,6 +30,8 @@ const createUser = (connection, userData) => {
     userData.email_id,
     userData.gender,
     userData.disability_type_id,
+    userData.fathers_name,
+    userData.date_of_birth,
     userData.registration_date,
     '1' // Set validity_id to '1' by default
   ];

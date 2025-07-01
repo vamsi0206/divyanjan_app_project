@@ -36,7 +36,16 @@ const getApplicationsByEmployeeLevel = (connection, employeeLevel, employeeId) =
 
 const getApplicantApplications = (connection, applicantId) => {
     const query = `
-        SELECT a.*, app.*, al.current_level, al.status, al.comments
+        SELECT 
+            a.application_id, a.submission_date, a.process_date, a.status,
+            a.current_division_id, a.card_number, a.card_issue_date, a.Authorname,
+            a.doctor_name, a.doctor_reg_no, a.hospital_name, a.hospital_city,
+            a.hospital_state, a.certificate_issue_date, a.validity_id,
+            app.name, app.mobile_number, app.email_id, app.gender,
+            app.disability_type_id, app.address, app.pin_code, app.city,
+            app.statename, app.station_id, app.fathers_name,
+            DATE_FORMAT(app.date_of_birth, '%Y-%m-%d') as date_of_birth,
+            al.current_level, al.status as log_status, al.comments
         FROM Application a
         INNER JOIN Applicant app ON a.applicant_id = app.applicant_id
         LEFT JOIN ApplicationLog al ON a.application_id = al.application_id 
