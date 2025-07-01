@@ -3,7 +3,7 @@ const { createUser, getUserByMobileNumber } = require('../databaseModules/applic
 const router = express.Router();
 
 module.exports = (connection) => {
-	router.post('/register', async (req, res) => {
+	router.post('/', async (req, res) => {
 		// require mandatory fields
 		const requiredFields = ['name', 'mobile_number', 'password', 'email_id', 'gender', 'disability_type_id'];
 		// for (const field of requiredFields) {
