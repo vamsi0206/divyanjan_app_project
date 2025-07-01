@@ -36,8 +36,9 @@ const getApplicationsByEmployeeLevel = (connection, employeeLevel, employeeId) =
 
 const getApplicantApplications = (connection, applicantId) => {
     const query = `
-        SELECT a.*, al.current_level, al.status as log_status, al.comments
+        SELECT a.*, app.*, al.current_level, al.status, al.comments
         FROM Application a
+        INNER JOIN Applicant app ON a.applicant_id = app.applicant_id
         LEFT JOIN ApplicationLog al ON a.application_id = al.application_id 
             AND al.validity_id = '1'
         WHERE a.applicant_id = ? 
@@ -196,13 +197,20 @@ const setApplicationStatus = (connection, applicationId, actionType) => {
             if (results.length > 0) {
               newLevel = incrementLevel(results[0].current_level);
             }
-            // Insert a new ApplicationLog row with incremented current_level, validity_id = '1', and status = actionType
-            const insertLogQuery = "INSERT INTO ApplicationLog (application_id, status, current_level, validity_id, assign_date) VALUES (?, ?, ?, '1', NOW())";
-            connection.query(insertLogQuery, [applicationId, actionType, newLevel], (err) => {
+            // Update level_passed_date for the old log entry (most recent one)
+            const updateLevelPassedQuery = "UPDATE ApplicationLog SET level_passed_date = NOW() WHERE application_id = ? AND log_id = (SELECT log_id FROM (SELECT log_id FROM ApplicationLog WHERE application_id = ? ORDER BY log_id DESC LIMIT 1) AS temp)";
+            connection.query(updateLevelPassedQuery, [applicationId, applicationId], (err) => {
               if (err) {
-                return reject(err);
+                console.error('Error updating level_passed_date:', err);
               }
-              resolve({ success: true, message: `Application status updated to ${actionType} and new log row created` });
+              // Insert a new ApplicationLog row with incremented current_level, validity_id = '1', and status = actionType
+              const insertLogQuery = "INSERT INTO ApplicationLog (application_id, status, current_level, validity_id, assign_date) VALUES (?, ?, ?, '1', NOW())";
+              connection.query(insertLogQuery, [applicationId, actionType, newLevel], (err) => {
+                if (err) {
+                  return reject(err);
+                }
+                resolve({ success: true, message: `Application status updated to ${actionType} and new log row created` });
+              });
             });
           });
         });

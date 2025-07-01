@@ -11,7 +11,10 @@ router.post('/login', async (req, res) => {
   {
     const users = await getUserByMobileNumber(connection, mobile_number);
     if (users.length > 0 && users[0].password === password) {
-      return res.status(200).json({ message: 'login successful' });
+      return res.status(200).json({ 
+        message: 'login successful',
+        applicant_id: users[0].applicant_id
+      });
     }//may need to change status code for invalid credentials 
     return res.status(200).json({ message: 'invalid credentials' });
   } 
