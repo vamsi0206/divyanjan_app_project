@@ -13,7 +13,7 @@ module.exports = (connection) => {
         return res.status(200).json({
           message: 'login successful',
           user_id: users[0].user_id,
-          current_level: users[0].current_level
+          current_level: parseInt(users[0].current_level, 10)
         });
       }
       return res.status(200).json({ message: 'invalid credentials' });
