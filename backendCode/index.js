@@ -6,8 +6,8 @@ const bodyParser = require('body-parser')
 const dotenv=require('dotenv')
 
 //SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
-dotenv.config({path:'configRaheel.env'}); //For raheel's device
-//  dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+//dotenv.config({path:'configRaheel.env'}); //For raheel's device
+  dotenv.config({path:'./configRis.env'}); // For Rishabh's device
 
 const app = express();
 const port = 3000;
@@ -65,9 +65,9 @@ connection.connect((err) => {
     app.use((req, res) => {
         res.status(404).json({ message: 'Route not found' });
     });
-
-    app.listen(port, "0.0.0.0", () => {
-        console.log(`Backend server running on http://0.0.0.0:${port}`);
+let url="0.0.0.0";
+    app.listen(port, url, () => {
+        console.log(`Backend server running on ${url}:${port}`);
         console.log('Waiting for Flutter requests...');
     });
 });
