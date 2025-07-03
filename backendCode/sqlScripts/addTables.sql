@@ -83,28 +83,18 @@ CREATE TABLE Application (
     hospital_city VARCHAR(100),
     hospital_state VARCHAR(255),
     certificate_issue_date DATE,
+    -- New document fields
+    concession_certificate VARCHAR(255),
+    photograph VARCHAR(255),
+    disability_certificate VARCHAR(255),
+    dob_proof_type VARCHAR(100),
+    dob_proof_upload VARCHAR(255),
+    photoId_proof_type VARCHAR(100),
+    photoId_proof_upload VARCHAR(255),
+    address_proof_type VARCHAR(100),
+    address_proof_upload VARCHAR(255),
+    district VARCHAR(100),
     validity_id ENUM('0', '1') NOT NULL,
-    FOREIGN KEY (applicant_id) REFERENCES Applicant(applicant_id)
-);
-
--- DOCUMENT
-CREATE TABLE Document (
-    document_id INT PRIMARY KEY AUTO_INCREMENT,
-    applicant_id INT NOT NULL,
-    application_id INT NOT NULL,
-    document_type ENUM(
-        'disability_certificate',
-        'railway_concession_certificate',
-        'photo',
-        'dob_proof',
-        'photo_id_proof',
-        'address_proof'
-    ) NOT NULL,
-    file_path VARCHAR(255) NOT NULL,
-    upload_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    Authorname VARCHAR(255),
-    validity_id ENUM('0', '1') NOT NULL,
-    FOREIGN KEY (application_id) REFERENCES Application(application_id),
     FOREIGN KEY (applicant_id) REFERENCES Applicant(applicant_id)
 );
 
@@ -181,21 +171,14 @@ INSERT INTO Railwayuser (name, mobile_number, email, password, current_level, di
 INSERT INTO Application (
     applicant_id, submission_date, process_date, status, current_division_id, 
     card_number, card_issue_date, Authorname, doctor_name, doctor_reg_no, 
-    hospital_name, hospital_city, hospital_state, certificate_issue_date, validity_id
+    hospital_name, hospital_city, hospital_state, certificate_issue_date, 
+    concession_certificate, photograph, disability_certificate, dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district, validity_id
 ) VALUES
-(1, NOW(), NULL, 'pending', 10, NULL, NULL, 'System', 'Dr. Anil Kumar', 'MCI12345', 'Apollo Hospital', 'Hyderabad', 'Telangana', '2023-01-10', '1'),
-(2, NOW(), NULL, 'pending', 10, NULL, NULL, 'System', 'Dr. Sunita Rao', 'DMC67890', 'Yashoda Hospital', 'Secunderabad', 'Telangana', '2023-02-15', '1'),
-(3, NOW(), NULL, 'pending', 11, NULL, NULL, 'System', 'Dr. Rajeshwari Devi', 'APMC11223', 'Government General Hospital', 'Vijayawada', 'Andhra Pradesh', '2023-03-20', '1'),
-(4, NOW(), NULL, 'pending', 11, NULL, NULL, 'System', 'Dr. Krishna Prasad', 'KMCI44556', 'KIMS Hospital', 'Guntur', 'Andhra Pradesh', '2023-04-05', '1'),
-(5, NOW(), NULL, 'pending', 12, NULL, NULL, 'System', 'Dr. Lakshmi Narayan', 'TCMC77889', 'Stanley Medical College', 'Chennai', 'Tamil Nadu', '2023-05-12', '1');
-
--- Populate Document Table (linking to existing applicants and applications)
-INSERT INTO Document (applicant_id, application_id, document_type, file_path, upload_date, Authorname, validity_id) VALUES
-(1, 1, 'disability_certificate', '/docs/applicant1/disability.pdf', NOW(), 'Rohan Kumar', '1'),
-(1, 1, 'photo', '/docs/applicant1/photo.jpg', NOW(), 'Rohan Kumar', '1'),
-(2, 2, 'dob_proof', '/docs/applicant2/dob.pdf', NOW(), 'Priya Sharma', '1'),
-(3, 3, 'address_proof', '/docs/applicant3/address.pdf', NOW(), 'Amit Singh', '1'),
-(4, 4, 'railway_concession_certificate', '/docs/applicant4/railway.pdf', NOW(), 'Sneha Devi', '1');
+(1, NOW(), NULL, 'pending', 10, NULL, NULL, 'System', 'Dr. Anil Kumar', 'MCI12345', 'Apollo Hospital', 'Hyderabad', 'Telangana', '2023-01-10', '/docs/applicant1/railway_concession.pdf', '/docs/applicant1/photo.jpg', '/docs/applicant1/disability.pdf', 'Birth Certificate', '/docs/applicant1/dob.pdf', 'Aadhar Card', '/docs/applicant1/aadhar.pdf', 'Utility Bill', '/docs/applicant1/address.pdf', 'Hyderabad', '1'),
+(2, NOW(), NULL, 'pending', 10, NULL, NULL, 'System', 'Dr. Sunita Rao', 'DMC67890', 'Yashoda Hospital', 'Secunderabad', 'Telangana', '2023-02-15', '/docs/applicant2/railway_concession.pdf', '/docs/applicant2/photo.jpg', '/docs/applicant2/disability.pdf', 'Birth Certificate', '/docs/applicant2/dob.pdf', 'Aadhar Card', '/docs/applicant2/aadhar.pdf', 'Utility Bill', '/docs/applicant2/address.pdf', 'Secunderabad', '1'),
+(3, NOW(), NULL, 'pending', 11, NULL, NULL, 'System', 'Dr. Rajeshwari Devi', 'APMC11223', 'Government General Hospital', 'Vijayawada', 'Andhra Pradesh', '2023-03-20', '/docs/applicant3/railway_concession.pdf', '/docs/applicant3/photo.jpg', '/docs/applicant3/disability.pdf', 'Birth Certificate', '/docs/applicant3/dob.pdf', 'Aadhar Card', '/docs/applicant3/aadhar.pdf', 'Utility Bill', '/docs/applicant3/address.pdf', 'Vijayawada', '1'),
+(4, NOW(), NULL, 'pending', 11, NULL, NULL, 'System', 'Dr. Krishna Prasad', 'KMCI44556', 'KIMS Hospital', 'Guntur', 'Andhra Pradesh', '2023-04-05', '/docs/applicant4/railway_concession.pdf', '/docs/applicant4/photo.jpg', '/docs/applicant4/disability.pdf', 'Birth Certificate', '/docs/applicant4/dob.pdf', 'Aadhar Card', '/docs/applicant4/aadhar.pdf', 'Utility Bill', '/docs/applicant4/address.pdf', 'Guntur', '1'),
+(5, NOW(), NULL, 'pending', 12, NULL, NULL, 'System', 'Dr. Lakshmi Narayan', 'TCMC77889', 'Stanley Medical College', 'Chennai', 'Tamil Nadu', '2023-05-12', '/docs/applicant5/railway_concession.pdf', '/docs/applicant5/photo.jpg', '/docs/applicant5/disability.pdf', 'Birth Certificate', '/docs/applicant5/dob.pdf', 'Aadhar Card', '/docs/applicant5/aadhar.pdf', 'Utility Bill', '/docs/applicant5/address.pdf', 'Chennai', '1');
 
 -- Populate ApplicationLog Table (simulating application flow with validity_id logic integrated)
 INSERT INTO ApplicationLog (application_id, status, station_id, comments, validation_id, current_level, assign_date, level_passed_date, validity_id) VALUES

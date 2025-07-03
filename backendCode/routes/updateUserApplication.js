@@ -21,7 +21,8 @@ module.exports = (connection) => {
     // Then get application details if exists
     const applicationQuery = `
       SELECT doctor_name, doctor_reg_no, hospital_name, hospital_city, 
-             hospital_state, certificate_issue_date, status
+             hospital_state, certificate_issue_date, status,
+             concession_certificate, photograph, disability_certificate, dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
       FROM application 
       WHERE applicant_id = ? AND validity_id = '1'`;
 
@@ -61,7 +62,8 @@ module.exports = (connection) => {
       station_id, status, date_of_birth,
       // Disability certificate fields
       doctor_name, doctor_reg_no, hospital_name, hospital_city, 
-      hospital_state, certificate_issue_date 
+      hospital_state, certificate_issue_date,
+      concession_certificate, photograph, disability_certificate, dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
     } = req.body;
 
     if (!applicant_id) {
@@ -84,13 +86,15 @@ module.exports = (connection) => {
             INSERT INTO application (
               applicant_id, status, validity_id, current_division_id,
               doctor_name, doctor_reg_no, hospital_name, hospital_city,
-              hospital_state, certificate_issue_date
+              hospital_state, certificate_issue_date,
+              concession_certificate, photograph, disability_certificate, dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
             ) VALUES (
-              ?, 'draft', '1', 1, ?, ?, ?, ?, ?, ?
+              ?, 'draft', '1', 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )`;
           connection.query(createAppQuery, [
             applicant_id, doctor_name, doctor_reg_no, hospital_name,
-            hospital_city, hospital_state, certificate_issue_date
+            hospital_city, hospital_state, certificate_issue_date,
+            concession_certificate, photograph, disability_certificate, dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
           ], (err2, result) => {
             if (err2) {
               console.error('Error creating application:', err2);
@@ -121,7 +125,8 @@ module.exports = (connection) => {
           // Update disability certificate fields
           const certificateFields = {
             doctor_name, doctor_reg_no, hospital_name, hospital_city,
-            hospital_state, certificate_issue_date
+            hospital_state, certificate_issue_date,
+            concession_certificate, photograph, disability_certificate, dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
           };
           // Remove undefined values
           Object.keys(certificateFields).forEach(key => {
@@ -143,7 +148,17 @@ module.exports = (connection) => {
                       hospital_name = ?,
                       hospital_city = ?,
                       hospital_state = ?,
-                      certificate_issue_date = ?
+                      certificate_issue_date = ?,
+                      concession_certificate = ?,
+                      photograph = ?,
+                      disability_certificate = ?,
+                      dob_proof_type = ?,
+                      dob_proof_upload = ?,
+                      photoId_proof_type = ?,
+                      photoId_proof_upload = ?,
+                      address_proof_type = ?,
+                      address_proof_upload = ?,
+                      district = ?
                   WHERE application_id = ?`;
                 connection.query(updateAppQuery, [
                   certificateFields.doctor_name,
@@ -152,6 +167,16 @@ module.exports = (connection) => {
                   certificateFields.hospital_city,
                   certificateFields.hospital_state,
                   certificateFields.certificate_issue_date,
+                  certificateFields.concession_certificate,
+                  certificateFields.photograph,
+                  certificateFields.disability_certificate,
+                  certificateFields.dob_proof_type,
+                  certificateFields.dob_proof_upload,
+                  certificateFields.photoId_proof_type,
+                  certificateFields.photoId_proof_upload,
+                  certificateFields.address_proof_type,
+                  certificateFields.address_proof_upload,
+                  certificateFields.district,
                   application_id
                 ], (err) => {
                   if (err) {
@@ -178,7 +203,17 @@ module.exports = (connection) => {
                         hospital_name = ?,
                         hospital_city = ?,
                         hospital_state = ?,
-                        certificate_issue_date = ?
+                        certificate_issue_date = ?,
+                        concession_certificate = ?,
+                        photograph = ?,
+                        disability_certificate = ?,
+                        dob_proof_type = ?,
+                        dob_proof_upload = ?,
+                        photoId_proof_type = ?,
+                        photoId_proof_upload = ?,
+                        address_proof_type = ?,
+                        address_proof_upload = ?,
+                        district = ?
                     WHERE application_id = ?`;
                   connection.query(updateCertQuery, [
                     certificateFields.doctor_name,
@@ -187,6 +222,16 @@ module.exports = (connection) => {
                     certificateFields.hospital_city,
                     certificateFields.hospital_state,
                     certificateFields.certificate_issue_date,
+                    certificateFields.concession_certificate,
+                    certificateFields.photograph,
+                    certificateFields.disability_certificate,
+                    certificateFields.dob_proof_type,
+                    certificateFields.dob_proof_upload,
+                    certificateFields.photoId_proof_type,
+                    certificateFields.photoId_proof_upload,
+                    certificateFields.address_proof_type,
+                    certificateFields.address_proof_upload,
+                    certificateFields.district,
                     application_id
                   ], (err) => {
                     if (err) {

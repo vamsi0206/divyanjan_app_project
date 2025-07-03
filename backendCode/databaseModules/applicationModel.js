@@ -41,6 +41,7 @@ const getApplicantApplications = (connection, applicantId) => {
             a.current_division_id, a.card_number, a.card_issue_date, a.Authorname,
             a.doctor_name, a.doctor_reg_no, a.hospital_name, a.hospital_city,
             a.hospital_state, a.certificate_issue_date, a.validity_id,
+            a.concession_certificate, a.photograph, a.disability_certificate, a.dob_proof_type, a.dob_proof_upload, a.photoId_proof_type, a.photoId_proof_upload, a.address_proof_type, a.address_proof_upload, a.district,
             app.name, app.mobile_number, app.email_id, app.gender,
             app.disability_type_id, app.address, app.pin_code, app.city,
             app.statename, app.station_id, app.fathers_name,
@@ -161,11 +162,10 @@ const setApplicationStatus = (connection, applicationId, actionType) => {
   return new Promise((resolve, reject) => {
     if (actionType === 'rejected') {
       // Set validity_id = '0' and status = 'rejected' in Application and ApplicationLog
-      // Set validity_id = '0' in Document and DisabilityCertificate
+      // Set validity_id = '0' in DisabilityCertificate
       const updateQueries = [
         "UPDATE Application SET validity_id = '0', status = 'rejected' WHERE application_id = ?",
         "UPDATE ApplicationLog SET validity_id = '0', status = 'rejected' WHERE application_id = ?",
-        "UPDATE Document SET validity_id = '0' WHERE application_id = ?",
         "UPDATE DisabilityCertificate SET validity_id = '0' WHERE application_id = ?"
       ];
       const updatePromises = updateQueries.map(query => {
