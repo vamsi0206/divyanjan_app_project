@@ -53,7 +53,7 @@ module.exports = (connection) => {
   });
 
   // POST route to update or submit application
-  router.post('/updateUserApplication', async (req, res) => {
+  router.post('/', async (req, res) => {
     const { 
       // Applicant fields
       applicant_id, name, mobile_number, password, fathers_name, email_id, 
@@ -137,7 +137,7 @@ module.exports = (connection) => {
                 const updateAppQuery = `
                   UPDATE application 
                   SET submission_date = NOW(), 
-                      status = 'submitted',
+                      status = 'pending',
                       doctor_name = ?,
                       doctor_reg_no = ?,
                       hospital_name = ?,

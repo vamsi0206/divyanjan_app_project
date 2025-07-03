@@ -4,7 +4,7 @@ const router = express.Router();
 
 module.exports = (connection) => {
 
-router.post('/login', async (req, res) => {
+router.post('/', async (req, res) => {
   const { mobile_number, password } = req.body;
   console.log(req.body)
   try 

@@ -55,6 +55,7 @@ CREATE TABLE Railwayuser (
     name VARCHAR(20) NOT NULL,
     mobile_number VARCHAR(15) NOT NULL,
     email VARCHAR(50) NOT NULL,
+    password VARCHAR(25) NOT NULL,
     current_level ENUM('1', '2', '3') NOT NULL,
     station_id INT,
     --can use sql join(with stationLocationTable) to fetch division_id and statename while registering user to avoid inconsistency
@@ -69,7 +70,7 @@ CREATE TABLE Application (
     applicant_id INT NOT NULL,
     submission_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     process_date DATETIME,
-    status ENUM('submitted', 'approved', 'assigned', 'rejected', 'draft'),
+    status ENUM('pending', 'draft', 'rejected', 'assign') DEFAULT NULL,
     station_id ,
     current_division_id INT NOT NULL,
     card_number VARCHAR(20),
@@ -169,12 +170,12 @@ INSERT INTO Applicant (name, mobile_number, password, fathers_name, email_id, da
 ('Vikram Raj', '9321098765', 'vikram#abc', 'Prakash Raj', 'vikram.raj@example.com', '1985-09-28', 'Male', '10 MG Road', '600003', 'Chennai', 'Tamil Nadu', 105, 'Multiple Disabilities', 'submitting', '1');
 
 -- Populate Railwayuser Table (with random data)
-INSERT INTO Railwayuser (name, mobile_number, email, current_level, division_id, statename, station_id, validity_id) VALUES
-('Divya Reddy', '8765412345', 'divya.r@railway.com', '1', 10, 'Telangana', 101, '1'),
-('Suresh Babu', '8877654321', 'suresh.b@railway.com', '2', 10, 'Telangana', 102, '1'),
-('Anjali Verma', '7654321098', 'anjali.v@railway.com', '3', 11, 'Andhra Pradesh', 103, '1'),
-('Rahul Gupta', '7012345678', 'rahul.g@railway.com', '1', 11, 'Andhra Pradesh', 104, '1'),
-('Pooja Singh', '9456789012', 'pooja.s@railway.com', '2', 12, 'Tamil Nadu', 105, '1');
+INSERT INTO Railwayuser (name, mobile_number, email, password, current_level, division_id, statename, station_id, validity_id) VALUES
+('Divya Reddy', '8765412345', 'divya.r@railway.com', 'divya@123', '1', 10, 'Telangana', 101, '1'),
+('Suresh Babu', '8877654321', 'suresh.b@railway.com', 'suresh#pass', '2', 10, 'Telangana', 102, '1'),
+('Anjali Verma', '7654321098', 'anjali.v@railway.com', 'anjali$pwd', '3', 11, 'Andhra Pradesh', 103, '1'),
+('Rahul Gupta', '7012345678', 'rahul.g@railway.com', 'rahul@pwd', '1', 11, 'Andhra Pradesh', 104, '1'),
+('Pooja Singh', '9456789012', 'pooja.s@railway.com', 'pooja@pw', '2', 12, 'Tamil Nadu', 105, '1');
 
 -- Populate Application Table (linking to existing applicants)
 INSERT INTO Application (
@@ -182,11 +183,11 @@ INSERT INTO Application (
     card_number, card_issue_date, Authorname, doctor_name, doctor_reg_no, 
     hospital_name, hospital_city, hospital_state, certificate_issue_date, validity_id
 ) VALUES
-(1, NOW(), NULL, 'submitted', 10, NULL, NULL, 'System', 'Dr. Anil Kumar', 'MCI12345', 'Apollo Hospital', 'Hyderabad', 'Telangana', '2023-01-10', '1'),
-(2, NOW(), NULL, 'submitted', 10, NULL, NULL, 'System', 'Dr. Sunita Rao', 'DMC67890', 'Yashoda Hospital', 'Secunderabad', 'Telangana', '2023-02-15', '1'),
-(3, NOW(), NULL, 'submitted', 11, NULL, NULL, 'System', 'Dr. Rajeshwari Devi', 'APMC11223', 'Government General Hospital', 'Vijayawada', 'Andhra Pradesh', '2023-03-20', '1'),
-(4, NOW(), NULL, 'submitted', 11, NULL, NULL, 'System', 'Dr. Krishna Prasad', 'KMCI44556', 'KIMS Hospital', 'Guntur', 'Andhra Pradesh', '2023-04-05', '1'),
-(5, NOW(), NULL, 'submitted', 12, NULL, NULL, 'System', 'Dr. Lakshmi Narayan', 'TCMC77889', 'Stanley Medical College', 'Chennai', 'Tamil Nadu', '2023-05-12', '1');
+(1, NOW(), NULL, 'pending', 10, NULL, NULL, 'System', 'Dr. Anil Kumar', 'MCI12345', 'Apollo Hospital', 'Hyderabad', 'Telangana', '2023-01-10', '1'),
+(2, NOW(), NULL, 'pending', 10, NULL, NULL, 'System', 'Dr. Sunita Rao', 'DMC67890', 'Yashoda Hospital', 'Secunderabad', 'Telangana', '2023-02-15', '1'),
+(3, NOW(), NULL, 'pending', 11, NULL, NULL, 'System', 'Dr. Rajeshwari Devi', 'APMC11223', 'Government General Hospital', 'Vijayawada', 'Andhra Pradesh', '2023-03-20', '1'),
+(4, NOW(), NULL, 'pending', 11, NULL, NULL, 'System', 'Dr. Krishna Prasad', 'KMCI44556', 'KIMS Hospital', 'Guntur', 'Andhra Pradesh', '2023-04-05', '1'),
+(5, NOW(), NULL, 'pending', 12, NULL, NULL, 'System', 'Dr. Lakshmi Narayan', 'TCMC77889', 'Stanley Medical College', 'Chennai', 'Tamil Nadu', '2023-05-12', '1');
 
 -- Populate Document Table (linking to existing applicants and applications)
 INSERT INTO Document (applicant_id, application_id, document_type, file_path, upload_date, Authorname, validity_id) VALUES

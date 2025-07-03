@@ -6,12 +6,19 @@ const bodyParser = require('body-parser')
 const dotenv=require('dotenv')
 
 //SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
-//dotenv.config({path:'configRaheel.env'}); //For raheel's device
- dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+dotenv.config({path:'configRaheel.env'}); //For raheel's device
+//  dotenv.config({path:'./configRis.env'}); // For Rishabh's device
 
 const app = express();
 const port = 3000;
 
+// Middleware setup - MUST come before route setup
+app.use(cors()); // Allow requests from different origins
+app.use(express.json()); // For parsing JSON payloads
+app.use(bodyParser.json()); // For parsing JSON payloads (redundant but keeping for safety)
+app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded bodies
+
+// Import routes
 const applicantLoginRoute = require('./routes/applicantLoginRoute')
 const applicantRegisterRoute = require('./routes/applicantRegisterRoute')
 const updateUserApplicationRoute = require('./routes/updateUserApplication')
@@ -19,10 +26,7 @@ const applicantDashboardRoute = require('./routes/applicantDashboard')
 const employeeDashboardRoute = require('./routes/employeeDashboard')
 const applicationActionRoute = require('./routes/applicationAction')
 const reportRoute = require('./routes/report')
-
-app.use(cors()); // Allow requests from different origins (like your Flutter app)
-app.use(bodyParser.json()); // This is CRUCIAL: it makes Express understand JSON data sent in the request body
-app.use(bodyParser.urlencoded({ extended: true })); // For parsing URL-encoded data (good to include)
+const railwayUserLoginRoute = require('./routes/railwayUserLoginRoute')
 
 //connecting with the database
 var connection = mysql.createConnection({
@@ -36,19 +40,30 @@ var connection = mysql.createConnection({
 connection.connect((err) => {
     if (err) {
         console.error('Error connecting to MySQL database:', err);
-        // It's crucial to handle this error. Your server won't be able to talk to the DB.
-        // You might want to exit the process or show a prominent error message.
-        return;
+        process.exit(1); // Exit if we can't connect to database
     }
     console.log('Connected to MySQL database!');
 
-    app.use('/login', applicantLoginRoute(connection))
-    app.use('/register', applicantRegisterRoute(connection))
-    app.use('/updateUserApplication', updateUserApplicationRoute(connection))
-    app.use('/applicantDashboard', applicantDashboardRoute(connection))
-    app.use('/employeePage', employeeDashboardRoute(connection))
-    app.use('/applicationAction', applicationActionRoute(connection))
-    app.use('/queryApplications', reportRoute(connection))
+    // Setup routes
+    app.use('/login', applicantLoginRoute(connection));
+    app.use('/railwayUserLogin', railwayUserLoginRoute(connection));
+    app.use('/register', applicantRegisterRoute(connection));
+    app.use('/updateUserApplication', updateUserApplicationRoute(connection));
+    app.use('/applicantDashboard', applicantDashboardRoute(connection));
+    app.use('/employeePage', employeeDashboardRoute(connection));
+    app.use('/applicationAction', applicationActionRoute(connection));
+    app.use('/queryApplications', reportRoute(connection));
+
+    // Error handling middleware
+    app.use((err, req, res, next) => {
+        console.error(err.stack);
+        res.status(500).json({ message: 'Something broke!' });
+    });
+
+    // 404 handler
+    app.use((req, res) => {
+        res.status(404).json({ message: 'Route not found' });
+    });
 
     app.listen(port, "0.0.0.0", () => {
         console.log(`Backend server running on http://0.0.0.0:${port}`);

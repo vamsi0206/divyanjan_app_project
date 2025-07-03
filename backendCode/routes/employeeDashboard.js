@@ -5,7 +5,7 @@ const { getApplicationsByEmployeeLevel } = require('../databaseModules/applicati
 
 module.exports = (connection) => {
 
-router.post('/submit/:appid', async (req, res) => {
+router.post('/:appid', async (req, res) => {
     var appid = req.params.appid;
     console.log(appid);
     //change status of application to accept or reject
