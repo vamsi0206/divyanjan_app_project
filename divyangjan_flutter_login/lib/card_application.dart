@@ -270,14 +270,14 @@ class _ConcessionpageState extends State<Concessionpage> {
         "concession_certificate": concessionController.text.trim(),
         "photograph": photoController.text.trim(),
         "disability_certificate": disabilityController.text.trim(),
-        "dobProofType": selectedDobProof ?? "",
-        "dobProofUpload": dobProofUploadController.text.trim(),
-        "photoIdProofType": selectedPhotoIdProof ?? "",
-        "photoIdProofUpload": photoIdProofUploadController.text.trim(),
-        "addressProofType": selectedAddressProof ?? "",
-        "addressProofUpload": addressProofUploadController.text.trim(),
-        "card_issue_date": selectedDate?.toIso8601String() ?? "",
-        "card_issue_state": selectedState ?? "",
+        "dob_proof_type": selectedDobProof ?? "",
+        "dob_proof_upload": dobProofUploadController.text.trim(),
+        "photoId_proof_type": selectedPhotoIdProof ?? "",
+        "photoId_proof_upload": photoIdProofUploadController.text.trim(),
+        "address_proof_type": selectedAddressProof ?? "",
+        "address_proof_upload": addressProofUploadController.text.trim(),
+        "certificate_issue_date": selectedDate?.toIso8601String() ?? "",
+        "hospital_state": selectedState ?? "",
         "hospital_city": field3Controller.text.trim(),
         "hospital_name": field4Controller.text.trim(),
         "doctor_name": field5Controller.text.trim(),
@@ -292,19 +292,23 @@ class _ConcessionpageState extends State<Concessionpage> {
 
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(status == 'draft' ? 'Draft Saved ' : 'Form Submitted '),
-            backgroundColor: Colors.green,
-          ),
-        );
-        if (status=='draft'){
-          appid=UserSession().applicant_id;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => ApplicantPage()),
+
+        if (status == 'draft') {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text('Draft Saved ✅'), backgroundColor: Colors.green),
+          );
+        } else {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text('Form Submitted ✅'), backgroundColor: Colors.green),
           );
         }
+
+        appid = UserSession().applicant_id;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ApplicantPage()),
+        );
+
       } else {
         scaffoldMessenger.showSnackBar(
           SnackBar(
@@ -347,21 +351,21 @@ class _ConcessionpageState extends State<Concessionpage> {
           concessionController.text = responseBody['concession_certificate'] ?? '';
           photoController.text = responseBody['photograph'] ?? '';
           disabilityController.text = responseBody['disability_certificate'] ?? '';
-          dobProofUploadController.text = responseBody['dobProofUpload'] ?? '';
-          photoIdProofUploadController.text = responseBody['photoIdProofUpload'] ?? '';
-          addressProofUploadController.text = responseBody['addressProofUpload'] ?? '';
+          dobProofUploadController.text = responseBody['dob_proof_upload'] ?? '';
+          photoIdProofUploadController.text = responseBody['photoId_proof_upload'] ?? '';
+          addressProofUploadController.text = responseBody['address_proof_upload'] ?? '';
 
-          final photoIdFromDb = responseBody['photoIdProofType'];
+          final photoIdFromDb = responseBody['photoId_proof_type'];
           selectedPhotoIdProof = photoIdProofTypes.contains(photoIdFromDb) ? photoIdFromDb : null;
 
-          final dobProofFromDb = responseBody['dobProofType'];
+          final dobProofFromDb = responseBody['dob_proof_type'];
           selectedDobProof = dobProofTypes.contains(dobProofFromDb) ? dobProofFromDb : null;
 
-          final addressProofFromDb = responseBody['addressProofType'];
+          final addressProofFromDb = responseBody['address_proof_type'];
           selectedAddressProof = addressProofTypes.contains(addressProofFromDb) ? addressProofFromDb : null;
 
-          selectedDate = DateTime.tryParse(responseBody['card_issue_date'] ?? '');
-          selectedState = states.contains(responseBody['card_issue_state']) ? responseBody['card_issue_state'] : null;
+          selectedDate = DateTime.tryParse(responseBody['certificate_issue_date'] ?? '');
+          selectedState = states.contains(responseBody['hospital_state']) ? responseBody['hospital_state'] : null;
 
           field3Controller.text = responseBody['hospital_city'] ?? '';
           field4Controller.text = responseBody['hospital_name'] ?? '';

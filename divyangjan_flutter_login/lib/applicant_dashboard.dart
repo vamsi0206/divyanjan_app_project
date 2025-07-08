@@ -35,12 +35,15 @@ class _ApplicantPageState extends State<ApplicantPage> {
     }
 
     try {
-      final url = Uri.parse('http://172.20.10.2:3000/applicant_status/$applicantId');
+      final url = Uri.parse('http://172.20.10.2:3000/applicantDashboard/${UserSession().applicant_id}');
       final response = await http.get(url);
+      print("DEBUG: HTTP status code: ${response.statusCode}");
+      print("DEBUG: Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final status = data['status'];
+        final status = data['status']?.toString().toLowerCase();
+        print("DEBUG: status from backend is: $status (${status.runtimeType})");
 
         if (status == null || status == 'draft' || status == 'rejected') {
           setState(() {
@@ -51,6 +54,7 @@ class _ApplicantPageState extends State<ApplicantPage> {
             _isButtonEnabled = false;
           });
         }
+
       }
     } catch (e) {
       print("Network error: $e");
