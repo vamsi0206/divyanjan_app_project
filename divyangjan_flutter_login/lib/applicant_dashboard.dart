@@ -1,16 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'applicant_dashboard_classes.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'user_session.dart';
+import 'applicant_dashboard_classes.dart';
 import 'card_application.dart';
-void main() => runApp(MaterialApp(
-    theme: ThemeData(
-        fontFamily: 'InriaSans'
-    ),
-    home: ApplicantPage()));
 
-class ApplicantPage extends StatelessWidget {
+void main() => runApp(MaterialApp(
+  theme: ThemeData(fontFamily: 'InriaSans'),
+  home: ApplicantPage(),
+));
+
+class ApplicantPage extends StatefulWidget {
+  @override
+  _ApplicantPageState createState() => _ApplicantPageState();
+}
+
+class _ApplicantPageState extends State<ApplicantPage> {
+  bool _isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkApplicationStatus();
+  }
+
+  Future<void> _checkApplicationStatus() async {
+    final applicantId = UserSession().applicant_id;
+
+    if (applicantId == null) {
+      setState(() {
+        _isButtonEnabled = true;
+      });
+      return;
+    }
+
+    try {
+      final url = Uri.parse('http://172.20.10.2:3000/applicant_status/$applicantId');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final status = data['status'];
+
+        if (status == null || status == 'draft' || status == 'rejected') {
+          setState(() {
+            _isButtonEnabled = true;
+          });
+        } else {
+          setState(() {
+            _isButtonEnabled = false;
+          });
+        }
+      }
+    } catch (e) {
+      print("Network error: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +71,6 @@ class ApplicantPage extends StatelessWidget {
             backgroundColor: Color.fromARGB(255, 181, 74, 226),
             centerTitle: true,
             elevation: 0.0,
-
             leading: Padding(
               padding: EdgeInsets.all(8.0),
               child: Image.asset('assets/tr_railway_logo.png', fit: BoxFit.contain),
@@ -39,7 +84,7 @@ class ApplicantPage extends StatelessWidget {
                     fontFamily: 'OdorMeanChey',
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: Color.fromARGB(255, 254, 255, 254),
+                    color: Colors.white,
                   ),
                 ),
                 Text(
@@ -48,7 +93,7 @@ class ApplicantPage extends StatelessWidget {
                     fontFamily: 'OdorMeanChey',
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: Color.fromARGB(255, 254, 255, 254),
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -56,7 +101,6 @@ class ApplicantPage extends StatelessWidget {
           ),
         ),
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -78,7 +122,6 @@ class ApplicantPage extends StatelessWidget {
                   ),
                 ],
               ),
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -101,51 +144,29 @@ class ApplicantPage extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Tooltip(
-                            message:
-                            'Download', // 👈 This text will show when you hover
-                            child: Icon(
-                              Icons.download,
-                              size: 24,
-                              color: Colors.black,
-                            ),
-                          ),
+                          Icon(Icons.download, size: 24, color: Colors.black),
                           SizedBox(width: 45),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Concession Form',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                'for Blind',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
+                              Text('Concession Form',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text('for Blind',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-
                   SizedBox(height: 20.0),
-
                   SizedBox(
                     width: 300,
                     height: 55,
                     child: ElevatedButton(
                       onPressed: () {
-                        print('concessional button - disability');
+                        print('Concessional button - disability');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFFFFDD00),
@@ -159,51 +180,37 @@ class ApplicantPage extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Tooltip(
-                            message:
-                            'Download', // 👈 This text will show when you hover
-                            child: Icon(
-                              Icons.download,
-                              size: 24,
-                              color: Colors.black,
-                            ),
-                          ),
-                          // 👈 icon for blind
+                          Icon(Icons.download, size: 24, color: Colors.black),
                           SizedBox(width: 45),
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Concession Form',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Text(
-                                'for other disability',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
+                              Text('Concession Form',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              Text('for other disability',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ],
                       ),
                     ),
                   ),
-
                   SizedBox(height: 25.0),
-
                   Center(
                     child: SizedBox(
                       width: 300,
                       height: 65,
                       child: ElevatedButton(
+                        onPressed: _isButtonEnabled
+                            ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Concessionpage()),
+                          );
+                        }
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFFFDD00),
                           foregroundColor: Colors.black,
@@ -212,58 +219,33 @@ class ApplicantPage extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                        ),// Reduced vertical padding to fit text
-
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Concessionpage(),
-                            ),
-                          );
-                        },
+                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              'Click here to Apply',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              'for Concession Card',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
+                            Text('Click here to Apply',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black)),
+                            Text('for Concession Card',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black)),
                           ],
                         ),
                       ),
                     ),
                   ),
-
-
                   SizedBox(height: 30.0),
-
-                  Center(
-                    child: Text(
-                      'Applicant Dashboard',
+                  Text('Applicant Dashboard',
                       style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black)),
                   SizedBox(height: 20.0),
-
-                  ApplicationDetailsTable(),           // function call
+                  ApplicationDetailsTable(),
                 ],
               ),
             ),

@@ -72,7 +72,7 @@ class _HomeState extends State<Home> {
       final responseData = jsonDecode(response.body);
       //Handle the server response
       if (response.statusCode == 200) {
-        if (responseData['message'] == 'login successful') {
+        if (responseData['message'] == 'Application retrieved successfully' ) {
           UserSession().applicant_id = responseData['applicant_id'];
           scaffoldMessenger.showSnackBar(
             SnackBar(content: Text('Login Successful')),

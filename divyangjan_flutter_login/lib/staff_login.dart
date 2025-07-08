@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'user_session.dart';
+import 'dart:convert';
+import 'level1usernavigation.dart';
+import 'level2usernavigation.dart';
+import 'level3usernavigation.dart';
 
 void main() => runApp(MaterialApp(
   theme: ThemeData(fontFamily: 'InriaSans'),
@@ -36,6 +43,62 @@ class _StaffPageState extends State<StaffPage> {
     _passwordController.dispose();
     super.dispose();
   }
+
+  Future<void> _handleLogin(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final staffId = _staffIdController.text.trim();
+    final password = _passwordController.text.trim();
+
+    final url = Uri.parse('http://172.20.10.2:3000/railwayUserLogin');
+    final headers = {'Content-Type': 'application/json; charset=UTF-8'};
+    final body = jsonEncode({
+      'user_id': staffId,
+      'password': password,
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (responseData['message'] == 'login successful') {
+          UserSession().staff_id = responseData['user_id'];
+          UserSession().level_user = responseData['current_level'];
+          UserSession().division_id=responseData['division_id'];
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text('Staff Login Successful')),
+          );
+          if (UserSession().level_user== 1) {
+            navigator.pushReplacement(MaterialPageRoute(builder: (_) => RailHomepage()));
+          } else if (UserSession().level_user == 2) {
+            navigator.pushReplacement(MaterialPageRoute(builder: (_) => CmiHomePage()));
+          } else if (UserSession().level_user == 3) {
+            navigator.pushReplacement(MaterialPageRoute(builder: (_) => CisHomePage()));
+          } else {
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text('Unknown user level: $UserSession().level_user')),
+            );
+          }
+
+        } else {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text('Invalid Credentials')),
+          );
+        }
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('Server error: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -145,11 +208,8 @@ class _StaffPageState extends State<StaffPage> {
                     width: 300,
                     height: 45,
                     child: ElevatedButton(
-                      onPressed: isButtonEnabled
-                          ? () {
-                        print('login now');
-                      }
-                          : null,
+                      onPressed: isButtonEnabled ? () => _handleLogin(context) : null,
+
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(0xFFFFDD00),
                         foregroundColor: Colors.black,

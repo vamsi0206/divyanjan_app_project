@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'user_session.dart';
+import 'applicant_dashboard.dart';
+import 'personal_details_table.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'personal_details_table.dart';
+int? appid=UserSession().applicant_id;
 
 void main() => runApp(MaterialApp(home: Concessionpage()));
 
@@ -135,7 +137,7 @@ class _ConcessionpageState extends State<Concessionpage> {
   void checkForDuplicates(List<String> list, String label) {
     final duplicates = list.toSet().length != list.length;
     if (duplicates) {
-      print("⚠ Duplicate found in $label list: $list");
+      print("Duplicate found in $label list: $list");
     }
   }
 
@@ -257,30 +259,30 @@ class _ConcessionpageState extends State<Concessionpage> {
       final headers = {'Content-Type': 'application/json; charset=UTF-8'};
 
       final body = jsonEncode({
-        "applicant_id":UserSession().applicant_id,
-        "fatherName": fatherNameController.text.trim(),
+        "applicant_id":UserSession().applicant_id ?? 1,
+        "fathers_name": fatherNameController.text.trim(),
         "address": addressController.text.trim(),
         "pin_code": pinCodeController.text.trim(),
         "city": cityController.text.trim(),
         "district": districtController.text.trim(),
         "statename": stateController.text.trim(),
-        "dob": dobController.text.trim(),
-        "concessionCertificate": concessionController.text.trim(),
+        "date_of_birth": dobController.text.trim(),
+        "concession_certificate": concessionController.text.trim(),
         "photograph": photoController.text.trim(),
-        "disabilityCertificate": disabilityController.text.trim(),
+        "disability_certificate": disabilityController.text.trim(),
         "dobProofType": selectedDobProof ?? "",
         "dobProofUpload": dobProofUploadController.text.trim(),
         "photoIdProofType": selectedPhotoIdProof ?? "",
         "photoIdProofUpload": photoIdProofUploadController.text.trim(),
         "addressProofType": selectedAddressProof ?? "",
         "addressProofUpload": addressProofUploadController.text.trim(),
-        "rlyCertIssueDate": selectedDate?.toIso8601String() ?? "",
-        "rlyCertIssuingState": selectedState ?? "",
-        "hospitalCity": field3Controller.text.trim(),
-        "hospitalName": field4Controller.text.trim(),
-        "doctorName": field5Controller.text.trim(),
-        "doctorRegNo": number1Controller.text.trim(),
-        "disabilityCertNo": number2Controller.text.trim(),
+        "card_issue_date": selectedDate?.toIso8601String() ?? "",
+        "card_issue_state": selectedState ?? "",
+        "hospital_city": field3Controller.text.trim(),
+        "hospital_name": field4Controller.text.trim(),
+        "doctor_name": field5Controller.text.trim(),
+        "doctor_reg_no": number1Controller.text.trim(),
+        "disability_cert_no": number2Controller.text.trim(),
         "status": status,
       });
 
@@ -292,14 +294,21 @@ class _ConcessionpageState extends State<Concessionpage> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text(status == 'draft' ? 'Draft Saved ✅' : 'Form Submitted 🎉'),
+            content: Text(status == 'draft' ? 'Draft Saved ' : 'Form Submitted '),
             backgroundColor: Colors.green,
           ),
         );
+        if (status=='draft'){
+          appid=UserSession().applicant_id;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ApplicantPage()),
+          );
+        }
       } else {
         scaffoldMessenger.showSnackBar(
           SnackBar(
-            content: Text(responseData['message'] ?? 'Submission Failed ❌'),
+            content: Text(responseData['message'] ?? 'Submission Failed '),
             backgroundColor: Colors.red,
           ),
         );
@@ -312,48 +321,58 @@ class _ConcessionpageState extends State<Concessionpage> {
   }
   Future<void> _loadDraft() async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final applicantId = UserSession().applicant_id;
+    print('$appid');
+
 
     try {
-      final url = Uri.parse('http://172.20.10.2:3000/updateUserApplication/$applicantId');
+      final url = Uri.parse('http://172.20.10.2:3000/updateUserApplication/$appid');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        final draft = responseBody['data'][0];
-
+        print('Response Status Code: ${response.statusCode}');
+        print('Response Body: ${response.body}');
+        // final draft = responseBody['data'][0];
+        // print('Draft body:$draft');
 
         setState(() {
-          fatherNameController.text = draft['fatherName'] ?? '';
-          addressController.text = draft['address'] ?? '';
-          pinCodeController.text = draft['pin_code'] ?? '';
-          cityController.text = draft['city'] ?? '';
-          districtController.text = draft['district'] ?? '';
-          stateController.text = draft['statename'] ?? '';
-          dobController.text = draft['dob'] ?? '';
+          fatherNameController.text = responseBody['fathers_name'] ?? '';
+          addressController.text = responseBody['address'] ?? '';
+          pinCodeController.text = responseBody['pin_code'] ?? '';
+          cityController.text = responseBody['city'] ?? '';
+          districtController.text = responseBody['district'] ?? '';
+          stateController.text = responseBody['statename'] ?? '';
+          dobController.text = responseBody['date_of_birth'] ?? '';
 
-          concessionController.text = draft['concessionCertificate'] ?? '';
-          photoController.text = draft['photograph'] ?? '';
-          disabilityController.text = draft['disabilityCertificate'] ?? '';
-          selectedDobProof = draft['dobProofType'];
-          dobProofUploadController.text = draft['dobProofUpload'] ?? '';
-          selectedPhotoIdProof = draft['photoIdProofType'];
-          photoIdProofUploadController.text = draft['photoIdProofUpload'] ?? '';
-          selectedAddressProof = draft['addressProofType'];
-          addressProofUploadController.text = draft['addressProofUpload'] ?? '';
-          selectedDate = DateTime.tryParse(draft['rlyCertIssueDate'] ?? '');
-          selectedState = draft['rlyCertIssuingState'];
+          concessionController.text = responseBody['concession_certificate'] ?? '';
+          photoController.text = responseBody['photograph'] ?? '';
+          disabilityController.text = responseBody['disability_certificate'] ?? '';
+          dobProofUploadController.text = responseBody['dobProofUpload'] ?? '';
+          photoIdProofUploadController.text = responseBody['photoIdProofUpload'] ?? '';
+          addressProofUploadController.text = responseBody['addressProofUpload'] ?? '';
 
-          field3Controller.text = draft['hospitalCity'] ?? '';
-          field4Controller.text = draft['hospitalName'] ?? '';
-          field5Controller.text = draft['doctorName'] ?? '';
-          number1Controller.text = draft['doctorRegNo'] ?? '';
-          number2Controller.text = draft['disabilityCertNo'] ?? '';
+          final photoIdFromDb = responseBody['photoIdProofType'];
+          selectedPhotoIdProof = photoIdProofTypes.contains(photoIdFromDb) ? photoIdFromDb : null;
+
+          final dobProofFromDb = responseBody['dobProofType'];
+          selectedDobProof = dobProofTypes.contains(dobProofFromDb) ? dobProofFromDb : null;
+
+          final addressProofFromDb = responseBody['addressProofType'];
+          selectedAddressProof = addressProofTypes.contains(addressProofFromDb) ? addressProofFromDb : null;
+
+          selectedDate = DateTime.tryParse(responseBody['card_issue_date'] ?? '');
+          selectedState = states.contains(responseBody['card_issue_state']) ? responseBody['card_issue_state'] : null;
+
+          field3Controller.text = responseBody['hospital_city'] ?? '';
+          field4Controller.text = responseBody['hospital_name'] ?? '';
+          field5Controller.text = responseBody['doctor_name'] ?? '';
+          number1Controller.text = responseBody['doctor_reg_no'] ?? '';
+          number2Controller.text = responseBody['disability_cert_no'] ?? '';
         });
 
         scaffoldMessenger.showSnackBar(SnackBar(content: Text('Draft loaded ✅')));
       } else {
-        print('No draft found or error: ${response.body}');
+        print('⚠ No draft found or error: ${response.body}');
       }
     } catch (e) {
       scaffoldMessenger.showSnackBar(
@@ -361,6 +380,7 @@ class _ConcessionpageState extends State<Concessionpage> {
       );
     }
   }
+
 
   @override
   Widget buildInfoRow(String label, String value) {
@@ -539,7 +559,7 @@ class _ConcessionpageState extends State<Concessionpage> {
           if (pickedDate != null) {
             setState(() {
               dobController.text =
-              "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+              "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
             });
             _checkFormFilled(); // ✅ ensure we re-check form filled
           }
@@ -552,6 +572,7 @@ class _ConcessionpageState extends State<Concessionpage> {
       ),
     );
   }
+
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -665,7 +686,6 @@ class _ConcessionpageState extends State<Concessionpage> {
                   ),
 
                   SizedBox(height: 15.0),
-
 
                   PersonalDetailsCard(),
 
