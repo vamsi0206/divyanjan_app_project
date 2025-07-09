@@ -6,8 +6,8 @@ const bodyParser = require('body-parser')
 const dotenv=require('dotenv')
 
 //SPECIFY DATABASE CONFIGURATION PARAMETERS BASED ON DEVICE BY IMPORTING CONFIGURATION FILE
-//dotenv.config({path:'configRaheel.env'}); //For raheel's device
-  dotenv.config({path:'./configRis.env'}); // For Rishabh's device
+dotenv.config({path:'configRaheel.env'}); //For raheel's device
+//dotenv.config({path:'./configRis.env'}); // For Rishabh's device
 
 const app = express();
 const port = 3000;
@@ -28,6 +28,7 @@ const applicationActionRoute = require('./routes/applicationAction')
 const reportRoute = require('./routes/report')
 const railwayUserLoginRoute = require('./routes/railwayUserLoginRoute')
 const reportSummary = require('./routes/reportSummary')
+const baseEmployeeOptionsRoute = require('./routes/baseEmployeeOptions')
 //connecting with the database
 var connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -54,6 +55,7 @@ connection.connect((err) => {
     app.use('/applicationAction', applicationActionRoute(connection));
     app.use('/queryApplications', reportRoute(connection));
     app.use('/reportSummary',reportSummary(connection));
+    app.use('/baseEmployeeOptions', baseEmployeeOptionsRoute(connection));
 
     // Error handling middleware
     app.use((err, req, res, next) => {

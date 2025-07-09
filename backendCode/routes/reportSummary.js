@@ -11,7 +11,7 @@ router.get('/:divId', async (req, res) => {
         const filters = {};
     //filter based on date range
         if (req.params.divId)  
-            filters.current_division_id = parseInt(req.query.current_division_id);
+            filters.division_id = parseInt(req.query.division_id);
         else
         {
             //give error since only data pertaining to particular division facility is to be implemented

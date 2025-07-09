@@ -14,11 +14,15 @@ module.exports = (connection) => {
     try {
       const users = await getUserByMobileNumber(connection, mobile_number);
       if (users.length > 0 && users[0].password === password) {
-        // Redirect to applicant dashboard with the applicant_id
-        return res.redirect(`/applicantDashboard/${users[0].applicant_id}`);
+        return res.status(200).json({
+          message: 'login successful',
+          applicant_id: users[0].applicant_id,
+        });
+        // // Redirect to applicant dashboard with the applicant_id
+        // return res.redirect(`/applicantDashboard/${users[0].applicant_id}`);
       }
       // For invalid credentials, you might want to redirect to login page with error
-      return res.status(401).json({ message: 'invalid credentials' });
+      return res.status(200).json({ message: 'invalid credentials' });
     } 
     catch (err) {
       console.error('Error during login:', err);

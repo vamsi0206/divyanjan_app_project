@@ -10,26 +10,39 @@ const getAllPendingApplications =(connection)=>{
   });
 }
 
-const getApplicationsByEmployeeLevel = (connection, employeeLevel, employeeId) => {
+const getApplicationsByEmployeeLevel = (connection, employeeLevel, employeeDivision) => {
     // Convert employee level to the level they can process (one below their level)
     const processableLevel = getProcessableLevel(employeeLevel);
     
     const query = `
-        SELECT DISTINCT a.*, al.current_level, al.status as log_status
+        SELECT DISTINCT a.*, 
+            DATE_FORMAT(a.submission_date, '%Y-%m-%d') as submission_date_formatted,
+            al.current_level, al.status as log_status,
+            app.city as applicant_city, app.name as applicant_name, app.mobile_number as applicant_mobile_number
         FROM Application a
         INNER JOIN ApplicationLog al ON a.application_id = al.application_id
+        INNER JOIN Applicant app ON a.applicant_id = app.applicant_id
         WHERE al.current_level = ? 
+        AND a.division_id = ?
         AND al.validity_id = '1'
         AND a.validity_id = '1'
         ORDER BY a.submission_date DESC
     `;
     
     return new Promise((resolve, reject) => {
-        connection.query(query, [processableLevel], (err, results) => {
+        connection.query(query, [processableLevel, employeeDivision], (err, results) => {
             if (err) {
                 return reject(err);
             }
-            resolve(results);
+            // Replace submission_date with formatted value (date only)
+            const formattedResults = results.map(row => {
+                if (row.submission_date_formatted) {
+                    row.submission_date = row.submission_date_formatted;
+                    delete row.submission_date_formatted;
+                }
+                return row;
+            });
+            resolve(formattedResults);
         });
     });
 }
@@ -38,7 +51,7 @@ const getApplicantApplications = (connection, applicantId) => {
     const query = `
         SELECT 
             a.application_id, a.submission_date, a.process_date, a.status,
-            a.current_division_id, a.card_number, a.card_issue_date, a.Authorname,
+            a.division_id, a.card_number, a.card_issue_date, a.Authorname,
             a.doctor_name, a.doctor_reg_no, a.hospital_name, a.hospital_city,
             a.hospital_state, a.certificate_issue_date, a.validity_id,
             a.concession_certificate, a.photograph, a.disability_certificate, a.dob_proof_type, a.dob_proof_upload, a.photoId_proof_type, a.photoId_proof_upload, a.address_proof_type, a.address_proof_upload, a.district,
@@ -94,7 +107,7 @@ const getFilteredPendingApplications = (connection,filters = {}) => {
     
     // Handle other single value filters
     const singleValueFields = [
-        'applicant_id', 'current_division_id', 'current_division_user_id',
+        'applicant_id', 'division_id', 'current_division_user_id',
         'current_cmi_id', 'current_cis_id', 'card_number'
     ];
     
@@ -236,11 +249,25 @@ function incrementLevel(currentLevel) {
   return currentLevel; // If already at max, stay
 }
 
+// Fetch Railwayuser by user_id
+const getRailwayUserById = (connection, userId) => {
+    const query = `SELECT * FROM Railwayuser WHERE user_id = ? AND validity_id = '1'`;
+    return new Promise((resolve, reject) => {
+        connection.query(query, [userId], (err, results) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(results && results.length > 0 ? results[0] : null);
+        });
+    });
+};
+
 module.exports = {
   getAllPendingApplications,
   getApplicationsByEmployeeLevel,
   getApplicantApplications,
   getFilteredPendingApplications,
   viewApplicationById,
-  setApplicationStatus
+  setApplicationStatus,
+  getRailwayUserById
 };

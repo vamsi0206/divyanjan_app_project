@@ -13,7 +13,7 @@ router.get('/:divId', async (req, res) => {
         //divisionId is in route parameter not in request parameter
         //if (req.query.current_division_id) filters.current_division_id = parseInt(req.query.current_division_id);
         if (req.params.divId)  
-            filters.current_division_id = parseInt(req.query.current_division_id);
+            filters.division_id = parseInt(req.query.current_division_id);
         else
         {
             //give error since only data pertaining to particular division facility is to be implemented
