@@ -1,5 +1,5 @@
 const getAllPendingApplications =(connection)=>{
-    const query="SELECT * from Application WHERE status =submitted ";
+    const query="SELECT * from Application WHERE status = 'submitted' AND validity_id = '1'";
     return new Promise((resolve, reject) => {
     connection.query(query, (err, results) => {
       if (err) {
@@ -8,6 +8,39 @@ const getAllPendingApplications =(connection)=>{
       resolve(results);
     });
   });
+}
+
+const getApplicationsByEmployeeId = (connection, employeeId) => {
+    const query = `
+        SELECT DISTINCT a.*, 
+            DATE_FORMAT(a.submission_date, '%Y-%m-%d') as submission_date_formatted,
+            al.current_level, al.status as log_status,
+            app.city as applicant_city, app.name as applicant_name, app.mobile_number as applicant_mobile_number
+        FROM Application a
+        INNER JOIN ApplicationLog al ON a.application_id = al.application_id
+        INNER JOIN Applicant app ON a.applicant_id = app.applicant_id
+        WHERE a.current_processing_employee = ? 
+        AND al.validity_id = '1'
+        AND a.validity_id = '1'
+        ORDER BY a.submission_date DESC
+    `;
+    
+    return new Promise((resolve, reject) => {
+        connection.query(query, [employeeId], (err, results) => {
+            if (err) {
+                return reject(err);
+            }
+            // Replace submission_date with formatted value (date only)
+            const formattedResults = results.map(row => {
+                if (row.submission_date_formatted) {
+                    row.submission_date = row.submission_date_formatted;
+                    delete row.submission_date_formatted;
+                }
+                return row;
+            });
+            resolve(formattedResults);
+        });
+    });
 }
 
 const getApplicationsByEmployeeLevel = (connection, employeeLevel, employeeDivision) => {
@@ -90,7 +123,7 @@ const getProcessableLevel = (employeeLevel) => {
 }
 
 const getFilteredPendingApplications = (connection,filters = {}) => {
-    let query = "SELECT * FROM Application WHERE 1=1";
+    let query = "SELECT * FROM Application WHERE validity_id = '1'";
     const params = [];
     
     // Handle multiple status values
@@ -159,7 +192,7 @@ const getFilteredPendingApplications = (connection,filters = {}) => {
 };
 
 const viewApplicationById= (applicationId,connection)=>{
-  const query="SELECT * from Application WHERE application_id= ? ";
+  const query="SELECT * from Application WHERE application_id= ? AND validity_id = '1'";
     return new Promise((resolve, reject) => {
     connection.query(query,[applicationId], (err, results) => {
       if (err) {
@@ -265,6 +298,7 @@ const getRailwayUserById = (connection, userId) => {
 module.exports = {
   getAllPendingApplications,
   getApplicationsByEmployeeLevel,
+  getApplicationsByEmployeeId,
   getApplicantApplications,
   getFilteredPendingApplications,
   viewApplicationById,

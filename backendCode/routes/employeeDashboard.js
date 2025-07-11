@@ -1,7 +1,7 @@
 const express = require('express');
 const { getUserByMobileNumber } = require('../databaseModules/applicantModel');
 const router = express.Router();
-const { getApplicationsByEmployeeLevel, getRailwayUserById } = require('../databaseModules/applicationModel');
+const { getApplicationsByEmployeeId, getRailwayUserById } = require('../databaseModules/applicationModel');
 
 module.exports = (connection) => {
 
@@ -23,13 +23,14 @@ router.get('/:employeeLevel/:employeeId', async (req, res) => {
     }
     
     try {
-        // Fetch employee info to get division_id
+        // Fetch employee info to verify employee exists
         const employee = await getRailwayUserById(connection, user_id);
         if (!employee) {
             return res.status(404).json({ success: false, message: 'Employee not found' });
         }
-        const employeeDivision = employee.division_id;
-        const applications = await getApplicationsByEmployeeLevel(connection, current_level, employeeDivision);
+        
+        // Get applications assigned to this employee based on current_processing_employee
+        const applications = await getApplicationsByEmployeeId(connection, user_id);
         
         if (applications && applications.length > 0) {
             return res.status(200).json({
@@ -46,7 +47,7 @@ router.get('/:employeeLevel/:employeeId', async (req, res) => {
             success: true,
             data: [],
             count: 0,
-            message: 'No applications found for your level and division',
+            message: 'No applications assigned to you',
             employeeLevel: current_level,
             processableLevel: current_level === '1' ? 'applicant' : 
                              current_level === '2' ? '1' : '2'

@@ -1,5 +1,5 @@
 const getUserByMobileNumber = (connection, mobileNumber) => {
-  const query = "SELECT * FROM applicant WHERE mobile_number = ?";
+  const query = "SELECT * FROM applicant WHERE mobile_number = ? AND validity_id = '1'";
   return new Promise((resolve, reject) => {
     connection.query(query, [mobileNumber], (err, results) => {
       if (err) {
@@ -67,14 +67,14 @@ const updateApplicantDetails = (connection, mobileNumber, fields) => {
 
 const getApplicationByMobileNumber = async (connection, mobileNumber) => {
   // First, get applicant_id from applicant table
-  const applicantQuery = "SELECT applicant_id FROM applicant WHERE mobile_number = ?";
+  const applicantQuery = "SELECT applicant_id FROM applicant WHERE mobile_number = ? AND validity_id = '1'";
   return new Promise((resolve, reject) => {
     connection.query(applicantQuery, [mobileNumber], (err, results) => {
       if (err) return reject(err);
       if (!results.length) return resolve({});
       const applicant_id = results[0].applicant_id;
       // Now get application(s) for this applicant_id
-      const appQuery = "SELECT submission_date FROM application WHERE applicant_id = ?";
+      const appQuery = "SELECT submission_date FROM application WHERE applicant_id = ? AND validity_id = '1'";
       connection.query(appQuery, [applicant_id], (err2, results2) => {
         if (err2) return reject(err2);
         resolve(results2[0] || {});
@@ -85,7 +85,7 @@ const getApplicationByMobileNumber = async (connection, mobileNumber) => {
 
 const submitApplication = async (connection, mobileNumber, fields) => {
   // First, get applicant_id from applicant table
-  const applicantQuery = "SELECT applicant_id FROM applicant WHERE mobile_number = ?";
+  const applicantQuery = "SELECT applicant_id FROM applicant WHERE mobile_number = ? AND validity_id = '1'";
   return new Promise((resolve, reject) => {
     connection.query(applicantQuery, [mobileNumber], (err, results) => {
       if (err) return reject(err);

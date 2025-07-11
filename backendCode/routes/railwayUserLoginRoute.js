@@ -6,7 +6,7 @@ module.exports = (connection) => {
     const { user_id, password } = req.body;
     try {
       const [users] = await connection.promise().query(
-        'SELECT user_id, password, current_level FROM Railwayuser WHERE user_id = ?',
+        'SELECT user_id, password, current_level FROM Railwayuser WHERE user_id = ? AND validity_id = \'1\'',
         [user_id]
       );
       if (users.length > 0 && users[0].password === password) {
