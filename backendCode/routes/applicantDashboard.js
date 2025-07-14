@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getApplicantApplications } = require('../databaseModules/applicationModel');
+const { getApplicantStatusById } = require('../databaseModules/applicantModel');
 
 module.exports = (connection) => {
 
@@ -16,11 +17,9 @@ router.get('/:applicantId', async (req, res) => {
     }
     
     try {
-        // Remove fetching status from Applicant table
         const applications = await getApplicantApplications(connection, applicantId);
-        let status = null;
+        const status = await getApplicantStatusById(connection, applicantId);
         if (applications && applications.length > 0) {
-            status = applications[0].status || null;
             return res.status(200).json({
                 success: true,
                 data: applications,
@@ -35,7 +34,7 @@ router.get('/:applicantId', async (req, res) => {
             data: [],
             count: 0,
             applicantId: applicantId,
-            status: null,
+            status: status,
             message: 'No valid applications found for this applicant'
         });
 

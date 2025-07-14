@@ -156,6 +156,16 @@ const submitApplicationById = (connection, applicantId, fields) => {
   });
 };
 
+const getApplicantStatusById = (connection, applicantId) => {
+  const query = "SELECT status FROM applicant WHERE applicant_id = ? AND validity_id = '1'";
+  return new Promise((resolve, reject) => {
+    connection.query(query, [applicantId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results.length > 0 ? results[0].status : null);
+    });
+  });
+};
+
 module.exports = {
   getUserByMobileNumber,
   createUser,
@@ -164,4 +174,5 @@ module.exports = {
   submitApplication,
   updateApplicantDetailsById,
   submitApplicationById,
+  getApplicantStatusById,
 };

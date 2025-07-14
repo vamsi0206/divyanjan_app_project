@@ -90,7 +90,7 @@ const getApplicantApplications = (connection, applicantId) => {
             a.concession_certificate, a.photograph, a.disability_certificate, a.dob_proof_type, a.dob_proof_upload, a.photoId_proof_type, a.photoId_proof_upload, a.address_proof_type, a.address_proof_upload, a.district,
             app.name, app.mobile_number, app.email_id, app.gender,
             app.disability_type_id, app.address, app.pin_code, app.city,
-            app.statename, app.station_id, app.fathers_name,
+            app.statename, app.fathers_name,
             DATE_FORMAT(app.date_of_birth, '%Y-%m-%d') as date_of_birth,
             al.current_level, al.status as log_status, al.comments
         FROM Application a

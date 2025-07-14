@@ -13,7 +13,7 @@ module.exports = (connection) => {
     // First get applicant details
     const applicantQuery = `
       SELECT name, mobile_number, password, fathers_name, email_id, gender, 
-             disability_type_id, address, pin_code, city, statename, station_id,
+             disability_type_id, address, pin_code, city, statename,
              date_of_birth, fathers_name
       FROM applicant 
       WHERE applicant_id = ?`;
@@ -57,7 +57,7 @@ module.exports = (connection) => {
   router.post('/', async (req, res) => {
     const {
       applicant_id, name, mobile_number, password, fathers_name, email_id, gender,
-      disability_type_id, address, pin_code, city, statename, station_id, status, date_of_birth,
+      disability_type_id, address, pin_code, city, statename, status, date_of_birth,
       // Disability certificate fields
       doctor_name, doctor_reg_no, hospital_name, hospital_city, 
       hospital_state, certificate_issue_date: raw_certificate_issue_date,
@@ -116,7 +116,7 @@ module.exports = (connection) => {
           // Update all applicant fields
           const applicantFields = { 
             name, mobile_number, password, fathers_name, email_id, gender,
-            disability_type_id, address, pin_code, city, statename, station_id,
+            disability_type_id, address, pin_code, city, statename,
             date_of_birth
           };
           // Remove undefined values
