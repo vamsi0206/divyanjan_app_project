@@ -1,5 +1,5 @@
 const express = require('express');
-const { updateApplicantDetailsById, submitApplicationById } = require('../databaseModules/applicantModel');
+const { updateApplicantDetailsById, submitApplicationById, getDivisionByCity, getLevel1EmployeeForDivision } = require('../databaseModules/applicantModel');
 const router = express.Router();
 
 module.exports = (connection) => {
@@ -84,29 +84,47 @@ module.exports = (connection) => {
         let application_id;
         if (!results.length) {
           // Create new application for this applicant with disability certificate fields
+          // Lookup division_id from hospital_city
+          const division_id = await getDivisionByCity(connection, hospital_city);
+          if (!division_id) {
+            return res.status(400).json({ message: 'Could not determine division for the given hospital_city.' });
+          }
+          // Lookup level-1 employee for this division
+          const level1EmployeeId = await getLevel1EmployeeForDivision(connection, division_id);
+          if (!level1EmployeeId) {
+            return res.status(400).json({ message: 'No level-1 employee found for the given division.' });
+          }
           const createAppQuery = `
             INSERT INTO application (
               applicant_id, status, validity_id, division_id,
               doctor_name, doctor_reg_no, hospital_name, hospital_city,
               hospital_state, certificate_issue_date,
               concession_certificate, photograph, disability_certificate, disability_cert_no,
-              dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
+              dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district, current_processing_employee
             ) VALUES (
-              ?, 'draft', '1', 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+              ?, 'draft', '1', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )`;
-          connection.query(createAppQuery, [
-            applicant_id, doctor_name, doctor_reg_no, hospital_name,
-            hospital_city, hospital_state, certificate_issue_date,
-            concession_certificate, photograph, disability_certificate, disability_cert_no,
-            dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
-          ], (err2, result) => {
-            if (err2) {
-              console.error('Error creating application:', err2);
-              return res.status(500).json({ message: 'An error occurred while creating application.' });
-            }
-            application_id = result.insertId;
-            processUpdate();
-          });
+         connection.query(createAppQuery, [
+           applicant_id, division_id, doctor_name, doctor_reg_no, hospital_name,
+           hospital_city, hospital_state, certificate_issue_date,
+           concession_certificate, photograph, disability_certificate, disability_cert_no,
+           dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district, level1EmployeeId
+         ], (err2, result) => {
+           if (err2) {
+             console.error('Error creating application:', err2);
+             return res.status(500).json({ message: 'An error occurred while creating application.' });
+           }
+           application_id = result.insertId;
+           // Insert initial ApplicationLog entry
+           const createLogQuery = `INSERT INTO ApplicationLog (application_id, status, current_level, assign_date, validity_id, current_processing_employee) VALUES (?, 'pending', '0', NOW(), '1', ?)`;
+           connection.query(createLogQuery, [application_id, level1EmployeeId], (err3) => {
+             if (err3) {
+               console.error('Error creating application log:', err3);
+               return res.status(500).json({ message: 'An error occurred while creating application log.' });
+             }
+             processUpdate();
+           });
+         });
         } else {
           application_id = results[0].application_id;
           processUpdate();
@@ -142,6 +160,8 @@ module.exports = (connection) => {
 
           if (status === 'submitting') {
             // Update applicant and set submission_date in application
+            // Set applicant status to 'submitting'
+            applicantFields.status = 'submitting';
             updateApplicantDetailsById(connection, applicant_id, applicantFields)
               .then(() => {
                 const updateAppQuery = `

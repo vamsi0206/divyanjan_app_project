@@ -274,6 +274,115 @@ const setApplicationStatus = (connection, applicationId, actionType) => {
   });
 };
 
+/**
+ * Approve application with custom logic: invalidate old log, create new log, update application.
+ * @param {object} connection - DB connection
+ * @param {number} applicationId - Application ID
+ * @param {number} nextEmployeeId - user_id of next current_processing_employee
+ * @returns {Promise<object>} - Success or error message
+ */
+const approveApplication = async (connection, applicationId, nextEmployeeId) => {
+  // 1. Get the latest ApplicationLog entry for this application (validity_id=1)
+  const getLogQuery = `SELECT * FROM ApplicationLog WHERE application_id = ? AND validity_id = '1' ORDER BY log_id DESC LIMIT 1`;
+  const [logEntry] = await new Promise((resolve, reject) => {
+    connection.query(getLogQuery, [applicationId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  if (!logEntry) throw new Error('No valid ApplicationLog entry found');
+
+  // 2. Invalidate the current log entry (set validity_id=0, level_passed_date=NOW(), status='assign')
+  const invalidateLogQuery = `UPDATE ApplicationLog SET validity_id = '0', level_passed_date = NOW(), status = 'assign' WHERE log_id = ?`;
+  await new Promise((resolve, reject) => {
+    connection.query(invalidateLogQuery, [logEntry.log_id], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  // 3. Insert a new ApplicationLog entry (incremented current_level, assign_date=NOW, status='pending', validity_id=1, new employee or null)
+  const newLevel = incrementLevel(logEntry.current_level);
+  const insertLogQuery = `INSERT INTO ApplicationLog (application_id, status, current_level, assign_date, validity_id, current_processing_employee) VALUES (?, 'pending', ?, NOW(), '1', ?)`;
+  await new Promise((resolve, reject) => {
+    connection.query(insertLogQuery, [applicationId, newLevel, nextEmployeeId], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  // 4. Update Application table (set current_processing_employee, process_date=NOW())
+  const updateAppQuery = `UPDATE Application SET current_processing_employee = ?, process_date = NOW() WHERE application_id = ?`;
+  await new Promise((resolve, reject) => {
+    connection.query(updateAppQuery, [nextEmployeeId, applicationId], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  return { success: true, message: 'Application approved and moved to next level' };
+};
+
+/**
+ * Reject application with custom logic: invalidate application/log, update comments, set applicant status to draft.
+ * @param {object} connection - DB connection
+ * @param {number} applicationId - Application ID
+ * @param {string} comments - Comments to add to ApplicationLog
+ * @returns {Promise<object>} - Success or error message
+ */
+const rejectApplication = async (connection, applicationId, comments) => {
+  // 1. Set validity_id=0 and status='rejected' in Application and ApplicationLog
+  const updateAppQuery = `UPDATE Application SET validity_id = '0', status = 'rejected' WHERE application_id = ?`;
+  await new Promise((resolve, reject) => {
+    connection.query(updateAppQuery, [applicationId], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+  const updateLogQuery = `UPDATE ApplicationLog SET validity_id = '0', status = 'rejected' WHERE application_id = ?`;
+  await new Promise((resolve, reject) => {
+    connection.query(updateLogQuery, [applicationId], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+  // 2. Update comments in the latest ApplicationLog entry (validity_id=1)
+  const getLatestLogQuery = `SELECT log_id FROM ApplicationLog WHERE application_id = ? ORDER BY log_id DESC LIMIT 1`;
+  const [latestLog] = await new Promise((resolve, reject) => {
+    connection.query(getLatestLogQuery, [applicationId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  if (latestLog && comments) {
+    const updateCommentsQuery = `UPDATE ApplicationLog SET comments = ? WHERE log_id = ?`;
+    await new Promise((resolve, reject) => {
+      connection.query(updateCommentsQuery, [comments, latestLog.log_id], (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+  }
+  // 3. Set status='draft' in applicant table for the applicant associated with the application
+  const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;
+  const [row] = await new Promise((resolve, reject) => {
+    connection.query(getApplicantIdQuery, [applicationId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  if (row && row.applicant_id) {
+    const updateApplicantQuery = `UPDATE applicant SET status = 'draft' WHERE applicant_id = ?`;
+    await new Promise((resolve, reject) => {
+      connection.query(updateApplicantQuery, [row.applicant_id], (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+  }
+  return { success: true, message: 'Application rejected, comments updated, applicant status set to draft' };
+};
+
 // Helper to increment the current_level
 function incrementLevel(currentLevel) {
   if (currentLevel === 'applicant' || currentLevel === '0') return '1';
@@ -281,6 +390,99 @@ function incrementLevel(currentLevel) {
   if (currentLevel === '2') return '3';
   return currentLevel; // If already at max, stay
 }
+
+/**
+ * Get the user_id of the next level employee for a given division.
+ * @param {object} connection - DB connection
+ * @param {string} divisionId - Division name/id
+ * @param {string|number} currentLevel - Current level as string or number
+ * @returns {Promise<number|null>} - user_id of next level employee or null
+ */
+const getNextLevelEmployeeForDivision = async (connection, divisionId, currentLevel) => {
+  let nextLevel = null;
+  if (currentLevel === '0' || currentLevel === 0) nextLevel = '2';
+  else if (currentLevel === '1' || currentLevel === 1) nextLevel = '3';
+  else return null; // No next level for 2->3 or 3->null
+  const query = `SELECT user_id FROM Railwayuser WHERE division_id = ? AND current_level = ? AND validity_id = '1' LIMIT 1`;
+  const [row] = await new Promise((resolve, reject) => {
+    connection.query(query, [divisionId, nextLevel], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  return row ? row.user_id : null;
+};
+
+/**
+ * Submit application with custom logic: if current_level is 0, require current_processing_employee; if 1 or 2, auto-assign next level employee; if 3, return null.
+ * @param {object} connection - DB connection
+ * @param {number} applicationId - Application ID
+ * @param {number} nextEmployeeId - user_id of next current_processing_employee (required only for level 0)
+ * @returns {Promise<object|null>} - Success or error message, or null if at max level
+ */
+const submitApplicationAction = async (connection, applicationId, nextEmployeeId) => {
+  // 1. Get the latest ApplicationLog entry for this application (validity_id=1)
+  const getLogQuery = `SELECT * FROM ApplicationLog WHERE application_id = ? AND validity_id = '1' ORDER BY log_id DESC LIMIT 1`;
+  const [logEntry] = await new Promise((resolve, reject) => {
+    connection.query(getLogQuery, [applicationId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  if (!logEntry) throw new Error('No valid ApplicationLog entry found');
+
+  let assignedEmployeeId = null;
+  if (logEntry.current_level === '0' || logEntry.current_level === 0) {
+    // Require nextEmployeeId for level 0
+    if (!nextEmployeeId) throw new Error('current_processing_employee is required for submit action at level 0');
+    assignedEmployeeId = nextEmployeeId;
+  } else if (logEntry.current_level === '1' || logEntry.current_level === 1 || logEntry.current_level === '2' || logEntry.current_level === 2) {
+    // Auto-assign next level employee for the division
+    const getDivisionQuery = `SELECT division_id FROM Application WHERE application_id = ?`;
+    const [appRow] = await new Promise((resolve, reject) => {
+      connection.query(getDivisionQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (!appRow) throw new Error('Application division not found');
+    assignedEmployeeId = await getNextLevelEmployeeForDivision(connection, appRow.division_id, logEntry.current_level);
+    if (!assignedEmployeeId) return null; // No next level employee (level 3)
+  } else if (logEntry.current_level === '3' || logEntry.current_level === 3) {
+    // At max level, do not proceed
+    return null;
+  }
+
+  // 2. Invalidate the current log entry (set validity_id=0, level_passed_date=NOW(), status='assign')
+  const invalidateLogQuery = `UPDATE ApplicationLog SET validity_id = '0', level_passed_date = NOW(), status = 'assign' WHERE log_id = ?`;
+  await new Promise((resolve, reject) => {
+    connection.query(invalidateLogQuery, [logEntry.log_id], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  // 3. Insert a new ApplicationLog entry (incremented current_level, assign_date=NOW, status='pending', validity_id=1, new employee)
+  const newLevel = incrementLevel(logEntry.current_level);
+  const insertLogQuery = `INSERT INTO ApplicationLog (application_id, status, current_level, assign_date, validity_id, current_processing_employee) VALUES (?, 'pending', ?, NOW(), '1', ?)`;
+  await new Promise((resolve, reject) => {
+    connection.query(insertLogQuery, [applicationId, newLevel, assignedEmployeeId], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  // 4. Update Application table (set current_processing_employee, process_date=NOW())
+  const updateAppQuery = `UPDATE Application SET current_processing_employee = ?, process_date = NOW() WHERE application_id = ?`;
+  await new Promise((resolve, reject) => {
+    connection.query(updateAppQuery, [assignedEmployeeId, applicationId], (err) => {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  return { success: true, message: 'Application submitted and moved to next level' };
+};
 
 // Fetch Railwayuser by user_id
 const getRailwayUserById = (connection, userId) => {
@@ -303,5 +505,9 @@ module.exports = {
   getFilteredPendingApplications,
   viewApplicationById,
   setApplicationStatus,
-  getRailwayUserById
+  getRailwayUserById,
+  approveApplication,
+  rejectApplication,
+  getNextLevelEmployeeForDivision,
+  submitApplicationAction
 };

@@ -21,6 +21,7 @@ const createUser = (connection, userData) => {
     'fathers_name',
     'date_of_birth',
     'registration_date',
+    'status', // Add status
     'validity_id'
   ];
   const values = [
@@ -33,6 +34,7 @@ const createUser = (connection, userData) => {
     userData.fathers_name,
     userData.date_of_birth,
     userData.registration_date,
+    'draft', // Always set status to draft
     '1' // Set validity_id to '1' by default
   ];
   const placeholders = columns.map(() => '?').join(', ');
@@ -166,6 +168,57 @@ const getApplicantStatusById = (connection, applicantId) => {
   });
 };
 
+/**
+ * Get the application_id for the given applicantId where validity_id=1
+ * @param {object} connection - DB connection
+ * @param {number} applicantId - Applicant ID
+ * @returns {Promise<number|null>} - application_id or null
+ */
+const getActiveApplicationIdByApplicantId = async (connection, applicantId) => {
+  const query = `SELECT application_id FROM Application WHERE applicant_id = ? AND validity_id = '1' LIMIT 1`;
+  const [row] = await new Promise((resolve, reject) => {
+    connection.query(query, [applicantId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  return row ? row.application_id : null;
+};
+
+/**
+ * Get the division_name for a given city from DivisionCity table
+ * @param {object} connection - DB connection
+ * @param {string} city - City name
+ * @returns {Promise<string|null>} - division_name or null
+ */
+const getDivisionByCity = async (connection, city) => {
+  const query = `SELECT division_name FROM DivisionCity WHERE city = ? LIMIT 1`;
+  const [row] = await new Promise((resolve, reject) => {
+    connection.query(query, [city], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  return row ? row.division_name : null;
+};
+
+/**
+ * Get the user_id of the level-1 employee for a given division from Railwayuser table
+ * @param {object} connection - DB connection
+ * @param {string} divisionId - Division name
+ * @returns {Promise<number|null>} - user_id or null
+ */
+const getLevel1EmployeeForDivision = async (connection, divisionId) => {
+  const query = `SELECT user_id FROM Railwayuser WHERE division_id = ? AND current_level = '1' AND validity_id = '1' LIMIT 1`;
+  const [row] = await new Promise((resolve, reject) => {
+    connection.query(query, [divisionId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+  return row ? row.user_id : null;
+};
+
 module.exports = {
   getUserByMobileNumber,
   createUser,
@@ -175,4 +228,7 @@ module.exports = {
   updateApplicantDetailsById,
   submitApplicationById,
   getApplicantStatusById,
+  getActiveApplicationIdByApplicantId,
+  getDivisionByCity,
+  getLevel1EmployeeForDivision,
 };
