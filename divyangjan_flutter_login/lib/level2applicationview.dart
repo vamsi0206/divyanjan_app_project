@@ -4,67 +4,44 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'main.dart';
 import 'railwayside_personal_details_card.dart';
-import 'level1userdashboard.dart';
+import 'level2userdashboard.dart';
 import 'user_session.dart';
-
 
 void main() => runApp(
   MaterialApp(
     theme: ThemeData(fontFamily: 'InriaSans'),
-    home: CardApprovalPage(),
+    home: CMICardApprovalPage(),
   ),
 );
 
-class CardApprovalPage extends StatefulWidget {
+class CMICardApprovalPage extends StatefulWidget {
   @override
-  _CardApprovalState createState() => _CardApprovalState();
+  _CMICardApprovalState createState() => _CMICardApprovalState();
 }
 
-class _CardApprovalState extends State<CardApprovalPage> {
+class _CMICardApprovalState extends State<CMICardApprovalPage> {
   String get forwardLabel {
     if (selectStatusType == 'TRANSFER') {
-      return "APPROVE TO DIVISION USER*";
+      return "ASSIGN TO DIVISION USER*";
     } else {
-      return "FORWARD/APPROVE CMI*";
+      return "FORWARD/ASSIGN CMI*";
     }
   }
 
   TextEditingController forwardController = TextEditingController();
   TextEditingController feedbackController = TextEditingController();
   TextEditingController commentController = TextEditingController();
+  TextEditingController verifyContoller = TextEditingController();
 
   String? selectStatusType;
   bool isSubmitEnabled = false;
   bool isCheckboxChecked = false;
-  bool isForwardToError = false;
 
   String? selectedDocumenttype;
-  String? selectedForwardTo;
-  Map<String, dynamic>? applicantData;
-  String? displayedFileName;
-  final Map<String, String Function(Map<String, dynamic>)> documentTypeToField = {
-    'Conc-Cert': (data) => data['concession_certificate'] ?? "",
-    'Disability-Cert': (data) => data['disability_certificate'] ?? "",
-    'Address proof': (data) => data['address_proof_upload'] ?? "",
-    'DOB proof': (data) => data['dob_proof_upload'] ?? "",
-    'ID proof': (data) => data['photoId_proof_upload'] ?? "",
-    'photo': (data) => data['photograph'] ?? "",
-  };
+  //String? selectStatusType;
 
-
-
-  String getDropdownLabel() {
-    if (selectStatusType == "TRANSFER") return "Select Div ID";
-    if (selectStatusType == "APPROVE") return "Select CMI";
-    return "";
-  }
-
-  List<String> getDropdownOptions() {
-    if (selectStatusType == "TRANSFER") return divIdOptions;
-    if (selectStatusType == "APPROVE") return cmiOptions;
-    return [];
-  }
-
+  //for table
+  // These get filled from the API
   String? issuingCity;
   String? dob;
   String? fatherName;
@@ -79,7 +56,16 @@ class _CardApprovalState extends State<CardApprovalPage> {
   String? doctorRegNo;
   String? concessionCertNo;
 
-  String? fetchedFileName;
+  Map<String, dynamic>? applicantData;
+  String? displayedFileName;
+  final Map<String, String Function(Map<String, dynamic>)> documentTypeToField = {
+    'Conc-Cert': (data) => data['concession_certificate'] ?? "",
+    'Disability-Cert': (data) => data['disability_certificate'] ?? "",
+    'Address proof': (data) => data['address_proof_upload'] ?? "",
+    'DOB proof': (data) => data['dob_proof_upload'] ?? "",
+    'ID proof': (data) => data['photoId_proof_upload'] ?? "",
+    'photo': (data) => data['photograph'] ?? "",
+  };
 
 
   final List<String> documents = [
@@ -91,12 +77,6 @@ class _CardApprovalState extends State<CardApprovalPage> {
     'photo',
   ];
 
-  String getDropdownHint() {
-    if (selectStatusType == "TRANSFER") return "Select Division ID";
-    if (selectStatusType == "APPROVE") return "Select CMI";
-    return "Select Option";
-  }
-
   final List<String> status = ['APPROVE', 'TRANSFER', 'REJECT'];
 
   Widget buildDropdown({
@@ -105,45 +85,48 @@ class _CardApprovalState extends State<CardApprovalPage> {
     required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color.fromARGB(244, 84, 83, 83),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Color.fromARGB(255, 181, 74, 226),
-              ),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-                items: items
-                    .map((item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                ))
-                    .toList(),
-                onChanged: onChanged,
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color.fromARGB(244, 84, 83, 83),
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Color.fromARGB(255, 181, 74, 226),
+                ), //Colors.grey),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: value,
+                  isExpanded: true,
+                  items: items
+                      .map(
+                        (item) => DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item),
+                    ),
+                  )
+                      .toList(),
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
-
   }
 
   Widget buildInfoField(String label, [String? value]) {
@@ -178,37 +161,37 @@ class _CardApprovalState extends State<CardApprovalPage> {
 
 
   void _updateSubmitButtonState() {
-    final isStatusSelected = selectStatusType != null && selectStatusType!.isNotEmpty;
-    final isForwardFilled = selectedForwardTo != null && selectedForwardTo!.trim().isNotEmpty;
+    //final isForwardFilled = forwardController.text.trim().isNotEmpty;
     final isFeedbackFilled = feedbackController.text.trim().isNotEmpty;
     final isCommentFilled = commentController.text.trim().isNotEmpty;
+    final isverifyFilled = verifyContoller.text.trim().isNotEmpty;
     final isCheckboxCheckedLocal = isCheckboxChecked;
 
-    bool enable = false;
-
-    if (isStatusSelected && isCheckboxCheckedLocal) {
-      if (selectStatusType == 'REJECT') {
-        enable = isCommentFilled;
-      } else if (selectStatusType == 'APPROVE' || selectStatusType == 'TRANSFER') {
-        enable = isForwardFilled && isFeedbackFilled && isCommentFilled;
-      }
+    if (selectStatusType == 'REJECT') {
+      setState(() {
+        isSubmitEnabled = isCommentFilled;
+      });
+    } else if (['APPROVE', 'TRANSFER'].contains(selectStatusType)) {
+      setState(() {
+        isSubmitEnabled =
+        // isForwardFilled &&
+        isFeedbackFilled &&
+            isCommentFilled &&
+            isCheckboxChecked &&
+            isverifyFilled;
+      });
+    } else {
+      setState(() {
+        isSubmitEnabled = false;
+      });
     }
-
-    setState(() {
-      isSubmitEnabled = enable;
-    });
   }
-
-  List<String> cmiOptions = [];
-  List<String> divIdOptions = [];
-
 
   Future<void> _submitForm() async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
     final String status = selectStatusType ?? "";
-    final String forwardTo = selectedForwardTo ?? "";
     final String feedback = feedbackController.text.trim();
     final String comment = commentController.text.trim();
     final String finalComment = "$feedback | $comment";
@@ -226,36 +209,14 @@ class _CardApprovalState extends State<CardApprovalPage> {
       );
       return;
     }
-    print("Status: $status");
-    print("Forward To: '$forwardTo'");
-    print("Feedback: '$feedback'");
-    print("Comment: '$comment'");
-
-
-    if ((status == 'APPROVE' || status == 'TRANSFER') &&
-        (forwardTo.isEmpty || feedback.isEmpty || comment.isEmpty)) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Please complete all fields for APPROVE/TRANSFER')),
-      );
-      return;
-    }
 
     try {
       final url = Uri.parse('http://172.20.10.2:3000/applicationAction/${UserSession().selectedApplicantId}/action');
       final headers = {'Content-Type': 'application/json; charset=UTF-8'};
       final body = jsonEncode({
         'action': status,
-        'current_processing_employee': forwardTo,
         'comments': finalComment,
       });
-      print('Sending request to: $url');
-      print('Body: $body');
-      print('Status: $status');
-      print('Forward To: $forwardTo');
-      print('Feedback: $feedback');
-      print('Comment: $comment');
-
-
 
       final response = await http.post(url, headers: headers, body: body);
       final responseData = jsonDecode(response.body);
@@ -265,7 +226,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
           SnackBar(content: Text('Form submitted successfully')),
         );
         navigator.pushReplacement(
-            MaterialPageRoute(builder: (_) => DivisonPage())
+          MaterialPageRoute(builder: (_) => CmiPage()),
         );
       } else {
         scaffoldMessenger.showSnackBar(
@@ -283,17 +244,19 @@ class _CardApprovalState extends State<CardApprovalPage> {
   @override
   void initState() {
     super.initState();
-    forwardController.addListener(_updateSubmitButtonState);
+    // forwardController.addListener(_updateSubmitButtonState);
     feedbackController.addListener(_updateSubmitButtonState);
     commentController.addListener(_updateSubmitButtonState);
+    verifyContoller.addListener(_updateSubmitButtonState);
     fetchAndSetDataFromApi();
   }
 
   @override
   void dispose() {
-    forwardController.dispose();
+    //  forwardController.dispose();
     feedbackController.dispose();
     commentController.dispose();
+    verifyContoller.dispose();
     super.dispose();
   }
 
@@ -353,6 +316,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
     });
   }
 
+
   void _checkIfFormIsReady() {
     if ([
       issuingCity,
@@ -374,57 +338,6 @@ class _CardApprovalState extends State<CardApprovalPage> {
       });
     }
   }
-
-  Future<void> fetchTransferDivisionOptions() async {
-    final response = await http.get(
-        Uri.parse("http://172.20.10.2:3000/baseEmployeeOptions/${UserSession().staff_id}")
-    );
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> body = json.decode(response.body);
-      final List<dynamic> raw = body['level1_users'] as List<dynamic>;
-      setState(() {
-        divIdOptions = raw.map((e) => e['user_id'].toString()).toList();
-      });
-    }
-  }
-
-  Future<void> fetchNextLevelOptions() async {
-    final response = await http.get(
-        Uri.parse("http://172.20.10.2:3000/baseEmployeeOptions/${UserSession().staff_id}")
-    );
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> body = json.decode(response.body);
-      final List<dynamic> raw = body['level2_users'] as List<dynamic>;
-      setState(() {
-        cmiOptions = raw.map((e) => e['user_id'].toString()).toList();
-      });
-    }
-  }
-
-  // Future<void> fetchDocumentFileName(String documentType) async {
-  //   try {
-  //     final response = await http.get(Uri.parse(
-  //       "https://your-api.com/get-doc-name?docType=$documentType",
-  //     ));
-  //
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-  //       setState(() {
-  //         fetchedFileName = data['file_name']; // Adjust key as per your API
-  //       });
-  //     } else {
-  //       setState(() {
-  //         fetchedFileName = "No file found";
-  //       });
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       fetchedFileName = "Error fetching file";
-  //     });
-  //   }
-  // }
-  //
-
 
   @override
   Widget build(BuildContext context) {
@@ -527,7 +440,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
                             // SizedBox(height: 20.0),
                             children: [
                               Text(
-                                'DIVYANGJAN CARD APPROVAL',
+                                'CMI CARD VERIFICATION',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -576,6 +489,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
                       ),
 
                       SizedBox(height: 8.0),
+
 
                       Center(
                         child: Container(
@@ -641,7 +555,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
                             // SizedBox(height: 20.0),
                             children: [
                               Text(
-                                'Download Documnets of the Applicant ',
+                                'Download Documents of the Applicant ',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -716,7 +630,6 @@ class _CardApprovalState extends State<CardApprovalPage> {
                         ),
                       ),
 
-
                       SizedBox(height: 10.0),
 
                       SizedBox(
@@ -786,6 +699,23 @@ class _CardApprovalState extends State<CardApprovalPage> {
                         ),
                       ),
 
+                      SizedBox(height: 12.0),
+
+                      TextField(
+                        textAlign: TextAlign.center,
+                        controller: verifyContoller,
+                        // Center the text and placeholder
+                        decoration: InputDecoration(
+                          hintText:
+                          'Upload Verification Report', // Placeholder text
+                          border: OutlineInputBorder(), // Default border
+                          contentPadding: EdgeInsets.all(
+                            12,
+                          ), // Optional: space inside the box
+                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+
                       SizedBox(height: 18.0),
 
                       Center(
@@ -807,11 +737,11 @@ class _CardApprovalState extends State<CardApprovalPage> {
                             // SizedBox(height: 20.0),
                             children: [
                               Text(
-                                "FORWARD/APPROVE CMI DETAILS",
+                                "CMI ACTION",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: Color.fromARGB(244, 84, 83, 83),
+                                  color: Colors.black,
                                 ),
                               ),
                             ],
@@ -820,89 +750,71 @@ class _CardApprovalState extends State<CardApprovalPage> {
                       ),
 
                       SizedBox(height: 12.0),
-
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
+                      child : Center(
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // First: Dropdown
                             SizedBox(
                               width: 200,
                               child: buildDropdown(
                                 label: "APPROVE/REJECT *",
                                 value: selectStatusType,
                                 items: status,
-                                onChanged: (val) async {
+                                onChanged: (val) {
                                   setState(() {
                                     selectStatusType = val;
-
-                                    if (val == 'REJECT') {
-                                      selectedForwardTo = null;
-                                    }
-
-                                    isForwardToError = false;
-                                    cmiOptions = [];
-                                    divIdOptions = [];
+                                    _updateSubmitButtonState();
                                   });
-
-                                  // Load dropdown options
-                                  if (val == "APPROVE") {
-                                    await fetchNextLevelOptions();
-                                  } else if (val == "TRANSFER") {
-                                    await fetchTransferDivisionOptions();
-                                  }
-
-
                                 },
-
                               ),
                             ),
+
                             SizedBox(width: 10),
+
                             SizedBox(
                               width: 200,
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Text(
-                                    forwardLabel,
+                                    "FEEDBACK *",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
                                       color: Color.fromARGB(244, 84, 83, 83),
                                     ),
                                   ),
-                                  SizedBox(height: 6),
+                                  const SizedBox(height: 6),
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12.0),
+                                    width: 200,
+                                    height: 55,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 8.0,
+                                    ),
                                     decoration: BoxDecoration(
-                                      border: Border.all(color: Color.fromARGB(255, 181, 74, 226)),
+                                      border: Border.all(
+                                        color: Color.fromARGB(
+                                          255,
+                                          181,
+                                          74,
+                                          226,
+                                        ), // same violet border
+                                      ),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: (selectStatusType == "APPROVE" || selectStatusType == "TRANSFER")
-                                        ? DropdownButtonHideUnderline(
-                                      child: DropdownButton<String>(
-                                        isExpanded: true,
-                                        value: selectedForwardTo,
-                                        hint: Text(getDropdownHint()),
-                                        items: getDropdownOptions().map((option) {
-                                          return DropdownMenuItem<String>(
-                                            value: option,
-                                            child: Text(option),
-                                          );
-                                        }).toList(),
-                                        onChanged: (val) {
-                                          setState(() {
-                                            selectedForwardTo = val;
-                                            _updateSubmitButtonState();
-                                          });
-                                        },
-
+                                    child: TextField(
+                                      controller: feedbackController,
+                                      decoration: InputDecoration(
+                                        //hintText: 'Enter something...', // Optional: adds a light placeholder
+                                        // border: InputBorder.none,       // Optional: remove if you want default underline
                                       ),
-                                    )
-                                        : TextField(
-                                      controller: forwardController,
-                                      enabled: selectStatusType != "REJECT",
-                                      decoration: InputDecoration.collapsed(
-                                        hintText: "Enter CMI",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
                                       ),
                                     ),
                                   ),
@@ -912,59 +824,9 @@ class _CardApprovalState extends State<CardApprovalPage> {
                           ],
                         ),
                       ),
-
-
-                      SizedBox(height: 10.0),
-
-                      SizedBox(
-                        width: 200,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              "FEEDBACK *",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Color.fromARGB(244, 84, 83, 83),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Container(
-                              width: 200,
-                              height: 55,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 8.0,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Color.fromARGB(
-                                    255,
-                                    181,
-                                    74,
-                                    226,
-                                  ), // same violet border
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: TextField(
-                                controller: feedbackController,
-                                decoration: InputDecoration(
-                                  //hintText: 'Enter something...', // Optional: adds a light placeholder
-                                  // border: InputBorder.none,       // Optional: remove if you want default underline
-                                ),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
 
-                      SizedBox(height: 12.0),
+                      SizedBox(height: 10.0),
 
                       TextField(
                         textAlign: TextAlign.center,
@@ -1003,7 +865,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
                                 padding: const EdgeInsets.only(top: 12.0),
 
                                 child: Text(
-                                  'I hereby declare that Application Details and Documents uploaded for TestCase with Disability ..  have been verified and Found to be OK. Concession Certificate Verification can be intiated for Card Generation.',
+                                  'I confirm that details given above belong to me and hereby state that I have no objection in authenticating my name and mobile number for the purpose of issuing of Divyangjan Concession Card by concerned Railway Authorities. I understand that my personal data will not be used for any other purposes other than issuing of Divyangjan Concession card',
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey,
@@ -1015,7 +877,7 @@ class _CardApprovalState extends State<CardApprovalPage> {
                         ),
                       ),
 
-                      SizedBox(height: 12.0),
+                      SizedBox(height: 10.0),
 
                       SizedBox(
                         width: 180,

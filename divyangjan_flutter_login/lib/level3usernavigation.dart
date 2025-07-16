@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'level3userdashboard.dart';
 
 void main() => runApp(
   MaterialApp(
@@ -82,7 +82,7 @@ class _CisHomePageState extends State<CisHomePage> {
             elevation: 0.0,
             leading: Padding(
               padding: EdgeInsets.all(8.0),
-              child: Image.asset("assets/rail_logo.png", fit: BoxFit.contain),
+              child: Image.asset("assets/tr_railway_logo.png", fit: BoxFit.contain),
             ),
             title: Column(
               mainAxisSize: MainAxisSize.min,
@@ -166,7 +166,7 @@ class _CisHomePageState extends State<CisHomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => CisHomePage(),
+                              builder: (_) => CisPage(),
                             ),
                           );
                         }),

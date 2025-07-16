@@ -255,7 +255,7 @@ class _ConcessionpageState extends State<Concessionpage> {
     try {
       final url = Uri.parse(
         'http://172.20.10.2:3000/updateUserApplication/',
-      ); // 🛑 Replace with real endpoint
+      );
       final headers = {'Content-Type': 'application/json; charset=UTF-8'};
 
       final body = jsonEncode({
@@ -295,11 +295,11 @@ class _ConcessionpageState extends State<Concessionpage> {
 
         if (status == 'draft') {
           scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text('Draft Saved ✅'), backgroundColor: Colors.green),
+            SnackBar(content: Text('Draft Saved'), backgroundColor: Colors.green),
           );
         } else {
           scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text('Form Submitted ✅'), backgroundColor: Colors.green),
+            SnackBar(content: Text('Form Submitted'), backgroundColor: Colors.green),
           );
         }
 
@@ -336,8 +336,6 @@ class _ConcessionpageState extends State<Concessionpage> {
         final responseBody = jsonDecode(response.body);
         print('Response Status Code: ${response.statusCode}');
         print('Response Body: ${response.body}');
-        // final draft = responseBody['data'][0];
-        // print('Draft body:$draft');
 
         setState(() {
           fatherNameController.text = responseBody['fathers_name'] ?? '';
@@ -374,7 +372,7 @@ class _ConcessionpageState extends State<Concessionpage> {
           number2Controller.text = responseBody['disability_cert_no'] ?? '';
         });
 
-        scaffoldMessenger.showSnackBar(SnackBar(content: Text('Draft loaded ✅')));
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text('Draft loaded')));
       } else {
         print('⚠ No draft found or error: ${response.body}');
       }

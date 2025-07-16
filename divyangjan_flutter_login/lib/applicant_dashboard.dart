@@ -35,16 +35,20 @@ class _ApplicantPageState extends State<ApplicantPage> {
     }
 
     try {
-      final url = Uri.parse('http://172.20.10.2:3000/applicantDashboard/${UserSession().applicant_id}');
+      final url = Uri.parse('http://172.20.10.2:3000/applicantDashboard/$applicantId');
       final response = await http.get(url);
       print("DEBUG: HTTP status code: ${response.statusCode}");
       print("DEBUG: Response body: ${response.body}");
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final status = data['status']?.toString().toLowerCase();
-        print("DEBUG: status from backend is: $status (${status.runtimeType})");
+        final Map<String, dynamic> decoded = jsonDecode(response.body);
 
+        // ✅ Accessing `status` from the top-level
+        final String? status = decoded['status']?.toString().toLowerCase();
+
+        print("DEBUG: top-level status is: $status");
+
+        // ✅ You can now decide based on this status
         if (status == null || status == 'draft' || status == 'rejected') {
           setState(() {
             _isButtonEnabled = true;
@@ -54,12 +58,14 @@ class _ApplicantPageState extends State<ApplicantPage> {
             _isButtonEnabled = false;
           });
         }
-
+      } else {
+        print("Failed to fetch status. HTTP: ${response.statusCode}");
       }
     } catch (e) {
       print("Network error: $e");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

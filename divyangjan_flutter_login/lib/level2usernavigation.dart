@@ -82,7 +82,7 @@ class _CmiHomePageState extends State<CmiHomePage> {
             elevation: 0.0,
             leading: Padding(
               padding: EdgeInsets.all(8.0),
-              child: Image.asset("assets/rail_logo.png", fit: BoxFit.contain),
+              child: Image.asset("assets/tr_railway_logo.png", fit: BoxFit.contain),
             ),
             title: Column(
               mainAxisSize: MainAxisSize.min,

@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'user_session.dart';
 import 'level1applicationview.dart';
+import 'level2applicationview.dart';
+import 'level3applicationview.dart';
 
 class Applicant {
   final String id;
@@ -93,11 +95,11 @@ class _DashboardPageState extends State<DashboardPage> {
       );
     } else if (UserSession().level_user == 2) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ApplicantDetailPage()),
+        MaterialPageRoute(builder: (_) => CMICardApprovalPage()),
       );
     } else if (UserSession().level_user == 3) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ApplicantDetailPage()),
+        MaterialPageRoute(builder: (_) => CISCardApproalpage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

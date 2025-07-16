@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'user_session.dart';
+import 'FinalCardPrint.dart';
 
 class ApplicationDetail {
   final String label;
@@ -29,7 +30,7 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
     'submission_date',
     'name',
     'mobile_number',
-    'station_id',
+    'division_id',
     'status',
     'comments',
     'normalPrint',
@@ -92,6 +93,14 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
     }
   }
 
+  void _onOpenPressed() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => Finalcard()),
+    );
+  }
+
+
   String _formatLabel(String key) {
     switch (key) {
       case 'application_id':
@@ -102,7 +111,7 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
         return 'Applicant Name';
       case 'mobile_number':
         return 'Mobile Number';
-      case 'station_id':
+      case 'division_id':
         return 'Card Issuing Station';
       case 'status':
         return 'Status';
@@ -117,11 +126,7 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
     }
   }
 
-  void _onOpenPressed() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Open action triggered.')),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -160,9 +165,9 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
                       ? IconButton(
                     icon: Icon(
                       Icons.open_in_new,
-                      color: _statusValue == 'Approved' ? Colors.blue : Colors.grey,
+                      color: _statusValue == 'approved' ? Colors.blue : Colors.grey,
                     ),
-                    onPressed: _statusValue == 'Approved' ? _onOpenPressed : null,
+                    onPressed: _statusValue == 'approved' ? _onOpenPressed : null,
                   )
                       : Text(detail.value, style: const TextStyle(fontFamily: 'InriaSans')),
                 ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'level1usernavigation.dart';
 import 'railwayapplicationsdashboard.dart';
 
+
 void main() => runApp(
   MaterialApp(
     theme: ThemeData(fontFamily: 'InriaSans'),
@@ -69,7 +70,7 @@ class _CisPageState extends State<CisPage> {
             elevation: 0.0,
             leading: Padding(
               padding: EdgeInsets.all(8.0),
-              child: Image.asset("assets/rail_logo.png", fit: BoxFit.contain),
+              child: Image.asset("assets/tr_railway_logo.png", fit: BoxFit.contain),
             ),
             title: Column(
               mainAxisSize: MainAxisSize.min,
@@ -102,73 +103,48 @@ class _CisPageState extends State<CisPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: Padding(
+        padding: EdgeInsets.all(20),
         child: Column(
           children: [
-            SizedBox(height: 20),
             Container(
               width: double.infinity,
-              height: MediaQuery.of(context).size.height - kToolbarHeight,
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
+                color: Colors.amberAccent,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Row(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.amberAccent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.menu, color: Colors.teal[900]),
-                          onPressed: () {
-                            _showNavigationMenu(context);
-                          },
+                  IconButton(
+                    icon: Icon(Icons.menu, color: Colors.teal[900]),
+                    onPressed: () {
+                      _showNavigationMenu(context);
+                    },
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        "Divyangjan CIS Dashboard",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.teal[900],
+                          letterSpacing: 1.0,
                         ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              "Divyangjan CIS Dashboard",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.teal[900],
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Expanded(
-                          child: DashboardPage(),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+            SizedBox(height: 20),
+            Expanded(child: DashboardPage()),
           ],
         ),
       ),
+
     );
   }
 }
