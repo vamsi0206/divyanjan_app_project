@@ -3,87 +3,66 @@ const router = express.Router();
 
 module.exports = (connection) => {
 
-    router.get('/:user_id/:division', async (req, res) => {
+    router.get('/:user_id', async (req, res) => {
         const user_id = req.params.user_id;
-        const division = req.params.division;
-        
         try {
-            // First, validate that the user is a level 1 employee
-            const validateUserQuery = `
-                SELECT user_id, name, current_level, division_id, validity_id 
-                FROM Railwayuser 
-                WHERE user_id = ? AND current_level = '1' AND validity_id = '1'
-            `;
-            
-            connection.query(validateUserQuery, [user_id], (err, userResults) => {
+            // Find the user's division_id from Railwayuser
+            const getDivisionQuery = `SELECT division_id FROM Railwayuser WHERE user_id = ? AND validity_id = '1'`;
+            connection.query(getDivisionQuery, [user_id], (err, userResults) => {
                 if (err) {
-                    console.error('Error validating user:', err);
+                    console.error('Error fetching user division:', err);
                     return res.status(500).json({ 
                         success: false, 
-                        message: 'Database error while validating user' 
+                        message: 'Database error while fetching user division' 
                     });
                 }
-                
-                if (userResults.length === 0) {
-                    return res.status(403).json({ 
+                if (!userResults || userResults.length === 0) {
+                    return res.status(404).json({ 
                         success: false, 
-                        message: 'Access denied. Only level 1 employees can access this route.' 
+                        message: 'User not found or not valid' 
                     });
                 }
-                
-                // Get level 1 users from different divisions (transfer_division)
-                const transferDivisionQuery = `
-                    SELECT user_id, name, mobile_number, email, current_level, division_id, statename, station_id
+                const division_id = userResults[0].division_id;
+                // Get all level-1 users from all divisions
+                const level1Query = `
+                    SELECT user_id, name, mobile_number, email, current_level, division_id, statename
                     FROM Railwayuser 
                     WHERE current_level = '1' 
-                    AND division_id != ? 
                     AND validity_id = '1'
                     ORDER BY division_id, name
                 `;
-                
-                // Get level 2 users from the same division (next_level)
-                const nextLevelQuery = `
-                    SELECT user_id, name, mobile_number, email, current_level, division_id, statename, station_id
+                // Get all level-2 users from the same division
+                const level2Query = `
+                    SELECT user_id, name, mobile_number, email, current_level, division_id, statename
                     FROM Railwayuser 
                     WHERE current_level = '2' 
                     AND division_id = ? 
                     AND validity_id = '1'
                     ORDER BY name
                 `;
-                
-                // Execute both queries
-                connection.query(transferDivisionQuery, [division], (err, transferResults) => {
+                connection.query(level1Query, (err, level1Results) => {
                     if (err) {
-                        console.error('Error fetching transfer division users:', err);
+                        console.error('Error fetching level-1 users:', err);
                         return res.status(500).json({ 
                             success: false, 
-                            message: 'Database error while fetching transfer division users' 
+                            message: 'Database error while fetching level-1 users' 
                         });
                     }
-                    
-                    connection.query(nextLevelQuery, [division], (err, nextLevelResults) => {
+                    connection.query(level2Query, [division_id], (err, level2Results) => {
                         if (err) {
-                            console.error('Error fetching next level users:', err);
+                            console.error('Error fetching level-2 users:', err);
                             return res.status(500).json({ 
                                 success: false, 
-                                message: 'Database error while fetching next level users' 
+                                message: 'Database error while fetching level-2 users' 
                             });
                         }
-                        
                         return res.status(200).json({
-                            success: true,
-                            transfer_division: transferResults,
-                            next_level: nextLevelResults,
-                            user_info: {
-                                user_id: userResults[0].user_id,
-                                name: userResults[0].name,
-                                division: userResults[0].division_id
-                            }
+                            level1_users: level1Results,
+                            level2_users: level2Results
                         });
                     });
                 });
             });
-            
         } catch (error) {
             console.error('Unexpected error in baseEmployeeOptions:', error);
             return res.status(500).json({ 

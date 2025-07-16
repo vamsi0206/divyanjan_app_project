@@ -26,7 +26,7 @@ CREATE TABLE Applicant (
     statename           VARCHAR(20),
     disability_type_id  VARCHAR(100),
     registration_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status              ENUM('submitting','draft'),
+    status              ENUM('submitting','draft', 'approved'),
     validity_id         ENUM('0','1') NOT NULL
 );
 
@@ -61,6 +61,21 @@ CREATE TABLE Railwayuser (
     validity_id    ENUM('0','1') NOT NULL
 );
 
+-- ConcessionCardsIssued table
+CREATE TABLE concessionCardsIssued (
+    card_number             INT PRIMARY KEY AUTO_INCREMENT,
+    name                    VARCHAR(80) NOT NULL,
+    gender                  VARCHAR(6) NOT NULL,
+    date_of_birth           DATE,
+    hospital_name           VARCHAR(150),
+    doctor_name             VARCHAR(100),
+    doctor_reg_no           VARCHAR(50),
+    disability_type_id      VARCHAR(100),
+    card_issue_date         DATE,
+    card_issue_valid_till   DATE,
+    certificate_issue_date  DATE
+);
+
 -- Application table (add current_processing_employee)
 CREATE TABLE Application (
     application_id      INT PRIMARY KEY AUTO_INCREMENT,
@@ -69,8 +84,10 @@ CREATE TABLE Application (
     process_date        DATETIME,
     status              ENUM('pending','draft','rejected','assign','card_generated') DEFAULT NULL, -- add card_generated status
     division_id         VARCHAR(100) NOT NULL, -- now references division_name
-    card_number         VARCHAR(20),
+    card_number         INT,
     card_issue_date     DATE,
+    card_issue_valid_till DATE,
+    concession_card_validity VARCHAR(32),
     Authorname          VARCHAR(255),
     doctor_name         VARCHAR(100),
     doctor_reg_no       VARCHAR(50),
@@ -91,7 +108,8 @@ CREATE TABLE Application (
     district            VARCHAR(100),
     validity_id         ENUM('0','1') NOT NULL,
     current_processing_employee INT,
-    FOREIGN KEY (applicant_id) REFERENCES Applicant(applicant_id)
+    FOREIGN KEY (applicant_id) REFERENCES Applicant(applicant_id),
+    FOREIGN KEY (card_number) REFERENCES concessionCardsIssued(card_number)
 );
 
 -- ApplicationLog table (add current_processing_employee)

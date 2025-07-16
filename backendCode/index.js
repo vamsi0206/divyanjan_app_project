@@ -29,6 +29,7 @@ const reportRoute = require('./routes/report')
 const railwayUserLoginRoute = require('./routes/railwayUserLoginRoute')
 const reportSummary = require('./routes/reportSummary')
 const baseEmployeeOptionsRoute = require('./routes/baseEmployeeOptions')
+const fetchingCardRoute = require('./routes/fetchingCard');
 //connecting with the database
 var connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -56,6 +57,7 @@ connection.connect((err) => {
     app.use('/queryApplications', reportRoute(connection));
     app.use('/reportSummary',reportSummary(connection));
     app.use('/baseEmployeeOptions', baseEmployeeOptionsRoute(connection));
+    app.use('/fetchingCard', fetchingCardRoute(connection));
 
     // Error handling middleware
     app.use((err, req, res, next) => {

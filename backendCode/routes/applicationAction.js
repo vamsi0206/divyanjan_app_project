@@ -29,7 +29,7 @@ router.post('/:applicantId/action', async (req, res) => {
   }
   const { action, current_processing_employee } = req.body;
   const { transferApplication } = require('../databaseModules/actionModel');
-  const { approveApplication, rejectApplication, submitApplicationAction, getNextLevelEmployeeForDivision } = require('../databaseModules/applicationModel');
+  const { approveApplication, rejectApplication, getNextLevelEmployeeForDivision } = require('../databaseModules/applicationModel');
 
   if (!action) {
     return res.status(400).json({ message: 'Action is required in request body' });
@@ -37,33 +37,7 @@ router.post('/:applicantId/action', async (req, res) => {
 
   try {
     let result;
-    if (action === 'submit') {
-      // Submit action (custom logic)
-      // Get the latest ApplicationLog entry to check current_level
-      const getLogQuery = `SELECT * FROM ApplicationLog WHERE application_id = ? AND validity_id = '1' ORDER BY log_id DESC LIMIT 1`;
-      const [logEntry] = await new Promise((resolve, reject) => {
-        connection.query(getLogQuery, [applicationId], (err, results) => {
-          if (err) return reject(err);
-          resolve(results);
-        });
-      });
-      if (!logEntry) {
-        return res.status(400).json({ message: 'No valid ApplicationLog entry found' });
-      }
-      if (logEntry.current_level === '3' || logEntry.current_level === 3) {
-        return res.status(400).json({ message: 'Application is already at the final level' });
-      }
-      let result;
-      try {
-        result = await submitApplicationAction(connection, applicationId, current_processing_employee);
-        if (result === null) {
-          return res.status(400).json({ message: 'No next level employee found or application is at the final level' });
-        }
-      } catch (err) {
-        return res.status(400).json({ message: err.message || 'Error during submit action' });
-      }
-      return res.status(200).json(result);
-    } else if (action === 'approve') {
+    if (action === 'APPROVE') {
       // Approve action (custom logic)
       let assignedEmployeeId = current_processing_employee;
       // Get the latest ApplicationLog entry to check current_level
@@ -99,21 +73,23 @@ router.post('/:applicantId/action', async (req, res) => {
       } else if (!assignedEmployeeId) {
         return res.status(400).json({ message: 'current_processing_employee is required for approve action' });
       }
-      const result = await approveApplication(connection, applicationId, assignedEmployeeId);
+      const { comments, card_issue_date, card_issue_valid_till, concession_card_validity } = req.body;
+      result = await approveApplication(connection, applicationId, assignedEmployeeId, comments, card_issue_date, card_issue_valid_till, concession_card_validity);
       return res.status(200).json(result);
-    } else if (action === 'reject') {
+    } else if (action === 'REJECT') {
       // Reject action (custom logic)
       const { comments } = req.body;
       if (!comments) {
         return res.status(400).json({ message: 'comments is required for reject action' });
       }
       result = await rejectApplication(connection, applicationId, comments);
-    } else if (action === 'transfer') {
+    } else if (action === 'TRANSFER') {
       // Transfer action
       if (!current_processing_employee) {
         return res.status(400).json({ message: 'current_processing_employee is required for transfer action' });
       }
-      result = await transferApplication(connection, applicationId, current_processing_employee);
+      const { comments } = req.body;
+      result = await transferApplication(connection, applicationId, current_processing_employee, comments);
     } else {
       return res.status(400).json({ message: 'Invalid action. Allowed actions: approve, reject, transfer' });
     }

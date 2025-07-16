@@ -5,9 +5,10 @@
  * @param {object} connection - DB connection
  * @param {number} applicationId - Application ID
  * @param {number} newEmployeeId - user_id of new current_processing_employee
+ * @param {string} [comments] - Optional comments to add to ApplicationLog
  * @returns {Promise<object>} - Success or error message
  */
-const transferApplication = async (connection, applicationId, newEmployeeId) => {
+const transferApplication = async (connection, applicationId, newEmployeeId, comments) => {
   // 1. Get the latest ApplicationLog entry for this application (validity_id=1)
   const getLogQuery = `SELECT * FROM ApplicationLog WHERE application_id = ? AND validity_id = '1' ORDER BY log_id DESC LIMIT 1`;
   const [logEntry] = await new Promise((resolve, reject) => {
@@ -45,6 +46,27 @@ const transferApplication = async (connection, applicationId, newEmployeeId) => 
       resolve();
     });
   });
+
+  // 4b. If comments is provided (even empty string), update comments for the latest ApplicationLog entry
+  if (typeof comments !== 'undefined') {
+    // Get the latest log_id (the one just inserted)
+    const getLatestLogQuery = `SELECT log_id FROM ApplicationLog WHERE application_id = ? ORDER BY log_id DESC LIMIT 1`;
+    const [latestLog] = await new Promise((resolve, reject) => {
+      connection.query(getLatestLogQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (latestLog) {
+      const updateCommentsQuery = `UPDATE ApplicationLog SET comments = ? WHERE log_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateCommentsQuery, [comments, latestLog.log_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+  }
 
   // 5. Update Application table (set current_processing_employee, division_id, process_date=NOW())
   const updateAppQuery = `UPDATE Application SET current_processing_employee = ?, division_id = ?, process_date = NOW() WHERE application_id = ?`;

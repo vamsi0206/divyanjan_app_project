@@ -84,7 +84,9 @@ const getApplicantApplications = (connection, applicantId) => {
     const query = `
         SELECT 
             a.application_id, a.submission_date, a.process_date, a.status,
-            a.division_id, a.card_number, a.card_issue_date, a.Authorname,
+            a.division_id, a.card_number, a.card_issue_date, 
+            a.card_issue_valid_till, a.concession_card_validity, 
+            a.Authorname,
             a.doctor_name, a.doctor_reg_no, a.hospital_name, a.hospital_city,
             a.hospital_state, a.certificate_issue_date, a.validity_id,
             a.concession_certificate, a.photograph, a.disability_certificate, a.dob_proof_type, a.dob_proof_upload, a.photoId_proof_type, a.photoId_proof_upload, a.address_proof_type, a.address_proof_upload, a.district,
@@ -92,11 +94,14 @@ const getApplicantApplications = (connection, applicantId) => {
             app.disability_type_id, app.address, app.pin_code, app.city,
             app.statename, app.fathers_name,
             DATE_FORMAT(app.date_of_birth, '%Y-%m-%d') as date_of_birth,
-            al.current_level, al.status as log_status, al.comments
+            al.current_level, al.status as log_status, al.comments,
+            a.current_processing_employee,
+            ru.name as current_processing_employee_name
         FROM Application a
         INNER JOIN Applicant app ON a.applicant_id = app.applicant_id
         LEFT JOIN ApplicationLog al ON a.application_id = al.application_id 
             AND al.validity_id = '1'
+        LEFT JOIN Railwayuser ru ON a.current_processing_employee = ru.user_id AND ru.validity_id = '1'
         WHERE a.applicant_id = ? 
         AND a.validity_id = '1'
         ORDER BY a.submission_date DESC
@@ -279,9 +284,13 @@ const setApplicationStatus = (connection, applicationId, actionType) => {
  * @param {object} connection - DB connection
  * @param {number} applicationId - Application ID
  * @param {number} nextEmployeeId - user_id of next current_processing_employee
+ * @param {string} [comments] - Optional comments to add to ApplicationLog
+ * @param {string} [card_issue_date] - Optional card issue date (YYYY-MM-DD)
+ * @param {string} [card_issue_valid_till] - Optional card valid till date (YYYY-MM-DD)
+ * @param {string} [concession_card_validity] - Optional card validity string (e.g., '5 years', 'lifetime')
  * @returns {Promise<object>} - Success or error message
  */
-const approveApplication = async (connection, applicationId, nextEmployeeId) => {
+const approveApplication = async (connection, applicationId, nextEmployeeId, comments, card_issue_date, card_issue_valid_till, concession_card_validity) => {
   // 1. Get the latest ApplicationLog entry for this application (validity_id=1)
   const getLogQuery = `SELECT * FROM ApplicationLog WHERE application_id = ? AND validity_id = '1' ORDER BY log_id DESC LIMIT 1`;
   const [logEntry] = await new Promise((resolve, reject) => {
@@ -311,14 +320,118 @@ const approveApplication = async (connection, applicationId, nextEmployeeId) => 
     });
   });
 
-  // 4. Update Application table (set current_processing_employee, process_date=NOW())
-  const updateAppQuery = `UPDATE Application SET current_processing_employee = ?, process_date = NOW() WHERE application_id = ?`;
-  await new Promise((resolve, reject) => {
-    connection.query(updateAppQuery, [nextEmployeeId, applicationId], (err) => {
-      if (err) return reject(err);
-      resolve();
+  // 3b. If comments is provided (even empty string), update comments for the latest ApplicationLog entry
+  if (typeof comments !== 'undefined') {
+    // Get the latest log_id (the one just inserted)
+    const getLatestLogQuery = `SELECT log_id FROM ApplicationLog WHERE application_id = ? ORDER BY log_id DESC LIMIT 1`;
+    const [latestLog] = await new Promise((resolve, reject) => {
+      connection.query(getLatestLogQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
     });
-  });
+    if (latestLog) {
+      const updateCommentsQuery = `UPDATE ApplicationLog SET comments = ? WHERE log_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateCommentsQuery, [comments, latestLog.log_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+  }
+
+  // 4. Update Application table (set current_processing_employee, process_date=NOW(), and if current_level=2, also update card_issue_date, card_issue_valid_till, concession_card_validity)
+  if (logEntry.current_level === '2' || logEntry.current_level === 2) {
+    // Set status in Application and ApplicationLog to 'card_generated', and Applicant to 'approved'
+    const updateAppQuery = `UPDATE Application SET current_processing_employee = ?, process_date = NOW(), card_issue_date = ?, card_issue_valid_till = ?, concession_card_validity = ?, status = 'card_generated' WHERE application_id = ?`;
+    await new Promise((resolve, reject) => {
+      connection.query(updateAppQuery, [nextEmployeeId, card_issue_date || null, card_issue_valid_till || null, concession_card_validity || null, applicationId], (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+    // Set status in ApplicationLog to 'card_generated' for the latest log
+    const getLatestLogQuery = `SELECT log_id FROM ApplicationLog WHERE application_id = ? ORDER BY log_id DESC LIMIT 1`;
+    const [latestLog] = await new Promise((resolve, reject) => {
+      connection.query(getLatestLogQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (latestLog) {
+      const updateLogStatusQuery = `UPDATE ApplicationLog SET status = 'card_generated' WHERE log_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateLogStatusQuery, [latestLog.log_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+    // Set status in Applicant to 'approved'
+    const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;
+    const [row] = await new Promise((resolve, reject) => {
+      connection.query(getApplicantIdQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (row && row.applicant_id) {
+      const updateApplicantQuery = `UPDATE Applicant SET status = 'approved' WHERE applicant_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateApplicantQuery, [row.applicant_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
+    // Insert into concessionCardsIssued (always insert, do not check for existence)
+    // 1. Get the updated Application row joined with Applicant
+    const getAppRowQuery = `SELECT a.*, app.name, app.gender, app.date_of_birth, app.disability_type_id FROM Application a INNER JOIN Applicant app ON a.applicant_id = app.applicant_id WHERE a.application_id = ?`;
+    const [appRow] = await new Promise((resolve, reject) => {
+      connection.query(getAppRowQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    // Always insert a new card
+    const insertCardQuery = `INSERT INTO concessionCardsIssued (name, gender, date_of_birth, hospital_name, doctor_name, doctor_reg_no, disability_type_id, card_issue_date, card_issue_valid_till, certificate_issue_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const cardValues = [
+      appRow.name,
+      appRow.gender,
+      appRow.date_of_birth,
+      appRow.hospital_name,
+      appRow.doctor_name,
+      appRow.doctor_reg_no,
+      appRow.disability_type_id,
+      appRow.card_issue_date,
+      appRow.card_issue_valid_till,
+      appRow.certificate_issue_date
+    ];
+    const result = await new Promise((resolve, reject) => {
+      connection.query(insertCardQuery, cardValues, (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      });
+    });
+    const cardNumber = result.insertId;
+    // Update Application.card_number
+    const updateCardNumberQuery = `UPDATE Application SET card_number = ? WHERE application_id = ?`;
+    await new Promise((resolve, reject) => {
+      connection.query(updateCardNumberQuery, [cardNumber, applicationId], (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+  } else {
+    const updateAppQuery = `UPDATE Application SET current_processing_employee = ?, process_date = NOW() WHERE application_id = ?`;
+    await new Promise((resolve, reject) => {
+      connection.query(updateAppQuery, [nextEmployeeId, applicationId], (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+  }
 
   return { success: true, message: 'Application approved and moved to next level' };
 };
@@ -363,7 +476,7 @@ const rejectApplication = async (connection, applicationId, comments) => {
       });
     });
   }
-  // 3. Set status='draft' in applicant table for the applicant associated with the application
+  // 3. Set status='rejected' in applicant table for the applicant associated with the application
   const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;
   const [row] = await new Promise((resolve, reject) => {
     connection.query(getApplicantIdQuery, [applicationId], (err, results) => {
@@ -372,7 +485,7 @@ const rejectApplication = async (connection, applicationId, comments) => {
     });
   });
   if (row && row.applicant_id) {
-    const updateApplicantQuery = `UPDATE applicant SET status = 'draft' WHERE applicant_id = ?`;
+    const updateApplicantQuery = `UPDATE applicant SET status = 'rejected' WHERE applicant_id = ?`;
     await new Promise((resolve, reject) => {
       connection.query(updateApplicantQuery, [row.applicant_id], (err) => {
         if (err) return reject(err);

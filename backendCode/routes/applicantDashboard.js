@@ -22,7 +22,7 @@ router.get('/:applicantId', async (req, res) => {
         if (applications && applications.length > 0) {
             return res.status(200).json({
                 success: true,
-                data: applications,
+                data: applications, // Each application now includes current_processing_employee and current_processing_employee_name
                 count: applications.length,
                 applicantId: applicantId,
                 status: status,

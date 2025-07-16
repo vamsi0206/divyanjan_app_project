@@ -219,6 +219,7 @@ module.exports = (connection) => {
               });
           } else {
             // Update both applicant details and disability certificate fields
+            applicantFields.status = 'draft';
             updateApplicantDetailsById(connection, applicant_id, applicantFields)
               .then(() => {
                 // Update disability certificate fields if they exist
