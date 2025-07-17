@@ -88,7 +88,7 @@ const getApplicantApplications = (connection, applicantId) => {
             a.card_issue_valid_till, a.concession_card_validity, 
             a.Authorname,
             a.doctor_name, a.doctor_reg_no, a.hospital_name, a.hospital_city,
-            a.hospital_state, a.certificate_issue_date, a.validity_id,
+            a.hospital_state, DATE_FORMAT(a.certificate_issue_date, '%Y-%m-%d') as certificate_issue_date, a.validity_id,
             a.concession_certificate, a.photograph, a.disability_certificate, a.dob_proof_type, a.dob_proof_upload, a.photoId_proof_type, a.photoId_proof_upload, a.address_proof_type, a.address_proof_upload, a.district,
             app.name, app.mobile_number, app.email_id, app.gender,
             app.disability_type_id, app.address, app.pin_code, app.city,
@@ -339,6 +339,23 @@ const approveApplication = async (connection, applicationId, nextEmployeeId, com
         });
       });
     }
+    // Also update comments in applicant table
+    const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;
+    const [row] = await new Promise((resolve, reject) => {
+      connection.query(getApplicantIdQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (row && row.applicant_id) {
+      const updateApplicantCommentsQuery = `UPDATE Applicant SET comments = ? WHERE applicant_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateApplicantCommentsQuery, [comments, row.applicant_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
   }
 
   // 4. Update Application table (set current_processing_employee, process_date=NOW(), and if current_level=2, also update card_issue_date, card_issue_valid_till, concession_card_validity)
@@ -475,6 +492,23 @@ const rejectApplication = async (connection, applicationId, comments) => {
         resolve();
       });
     });
+    // Also update comments in applicant table
+    const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;
+    const [row] = await new Promise((resolve, reject) => {
+      connection.query(getApplicantIdQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (row && row.applicant_id) {
+      const updateApplicantCommentsQuery = `UPDATE Applicant SET comments = ? WHERE applicant_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateApplicantCommentsQuery, [comments, row.applicant_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
   }
   // 3. Set status='rejected' in applicant table for the applicant associated with the application
   const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;

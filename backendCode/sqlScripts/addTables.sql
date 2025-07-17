@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS Application;
 DROP TABLE IF EXISTS Railwayuser;
 DROP TABLE IF EXISTS Applicant;
 DROP TABLE IF EXISTS DivisionCity;
+DROP TABLE IF EXISTS concessionCardsIssued;
 
 
 -- Applicant table (no station_id)
@@ -26,8 +27,9 @@ CREATE TABLE Applicant (
     statename           VARCHAR(20),
     disability_type_id  VARCHAR(100),
     registration_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status              ENUM('submitting','draft', 'approved'),
-    validity_id         ENUM('0','1') NOT NULL
+    status              ENUM('submitting','draft', 'approved', 'rejected'),
+    validity_id         ENUM('0','1') NOT NULL,
+    comments            TEXT
 );
 
 -- DivisionCity table: maps city to division

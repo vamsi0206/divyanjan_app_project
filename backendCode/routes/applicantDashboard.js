@@ -3,6 +3,17 @@ const router = express.Router();
 const { getApplicantApplications } = require('../databaseModules/applicationModel');
 const { getApplicantStatusById } = require('../databaseModules/applicantModel');
 
+// Add import for fetching comments
+const getApplicantCommentsById = (connection, applicantId) => {
+    const query = "SELECT comments FROM applicant WHERE applicant_id = ? AND validity_id = '1'";
+    return new Promise((resolve, reject) => {
+        connection.query(query, [applicantId], (err, results) => {
+            if (err) return reject(err);
+            resolve(results.length > 0 ? results[0].comments : null);
+        });
+    });
+};
+
 module.exports = (connection) => {
 
 router.get('/:applicantId', async (req, res) => {
@@ -19,6 +30,7 @@ router.get('/:applicantId', async (req, res) => {
     try {
         const applications = await getApplicantApplications(connection, applicantId);
         const status = await getApplicantStatusById(connection, applicantId);
+        const comments = await getApplicantCommentsById(connection, applicantId);
         if (applications && applications.length > 0) {
             return res.status(200).json({
                 success: true,
@@ -26,6 +38,7 @@ router.get('/:applicantId', async (req, res) => {
                 count: applications.length,
                 applicantId: applicantId,
                 status: status,
+                comments: comments,
                 message: 'Applications retrieved successfully'
             });
         }
@@ -35,6 +48,7 @@ router.get('/:applicantId', async (req, res) => {
             count: 0,
             applicantId: applicantId,
             status: status,
+            comments: comments,
             message: 'No valid applications found for this applicant'
         });
 

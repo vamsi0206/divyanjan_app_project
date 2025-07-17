@@ -65,8 +65,20 @@ module.exports = (connection) => {
       dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
     } = req.body;
 
+    // Helper to format date to YYYY-MM-DD
+    function toDateString(val) {
+      if (!val) return null;
+      try {
+        // Handles both Date objects and ISO strings
+        return new Date(val).toISOString().slice(0, 10);
+      } catch (e) {
+        return val;
+      }
+    }
+
     // Ensure certificate_issue_date is null if empty or undefined
-    const certificate_issue_date = raw_certificate_issue_date ? raw_certificate_issue_date : null;
+    const certificate_issue_date = raw_certificate_issue_date ? toDateString(raw_certificate_issue_date) : null;
+    const formatted_date_of_birth = date_of_birth ? toDateString(date_of_birth) : null;
 
     if (!applicant_id) {
       return res.status(400).json({ message: 'applicant_id is required' });
@@ -135,7 +147,7 @@ module.exports = (connection) => {
           const applicantFields = { 
             name, mobile_number, password, fathers_name, email_id, gender,
             disability_type_id, address, pin_code, city, statename,
-            date_of_birth
+            date_of_birth: formatted_date_of_birth
           };
           // Remove undefined values
           Object.keys(applicantFields).forEach(key => {
@@ -151,6 +163,7 @@ module.exports = (connection) => {
             concession_certificate, photograph, disability_certificate, disability_cert_no,
             dob_proof_type, dob_proof_upload, photoId_proof_type, photoId_proof_upload, address_proof_type, address_proof_upload, district
           };
+          certificateFields.certificate_issue_date = certificate_issue_date;
           // Remove undefined values
           Object.keys(certificateFields).forEach(key => {
             if (certificateFields[key] === undefined) {

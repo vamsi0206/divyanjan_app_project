@@ -66,6 +66,23 @@ const transferApplication = async (connection, applicationId, newEmployeeId, com
         });
       });
     }
+    // Also update comments in applicant table
+    const getApplicantIdQuery = `SELECT applicant_id FROM Application WHERE application_id = ?`;
+    const [row] = await new Promise((resolve, reject) => {
+      connection.query(getApplicantIdQuery, [applicationId], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+    if (row && row.applicant_id) {
+      const updateApplicantCommentsQuery = `UPDATE Applicant SET comments = ? WHERE applicant_id = ?`;
+      await new Promise((resolve, reject) => {
+        connection.query(updateApplicantCommentsQuery, [comments, row.applicant_id], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    }
   }
 
   // 5. Update Application table (set current_processing_employee, division_id, process_date=NOW())

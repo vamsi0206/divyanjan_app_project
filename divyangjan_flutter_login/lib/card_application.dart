@@ -80,7 +80,8 @@ class _ConcessionpageState extends State<Concessionpage> {
   ];
 
   String? selectedState;
-  DateTime? selectedDate;
+  DateTime? selectedDob; // Add this for date_of_birth
+  DateTime? selectedDate; // already exists for certificate_issue_date
 
   // TextEditingController field3Controller = TextEditingController();
   // TextEditingController field4Controller = TextEditingController();
@@ -266,7 +267,8 @@ class _ConcessionpageState extends State<Concessionpage> {
         "city": cityController.text.trim(),
         "district": districtController.text.trim(),
         "statename": stateController.text.trim(),
-        "date_of_birth": dobController.text.trim(),
+        // Use formatted date for date_of_birth
+        "date_of_birth": formatDate(selectedDob) ?? "",
         "concession_certificate": concessionController.text.trim(),
         "photograph": photoController.text.trim(),
         "disability_certificate": disabilityController.text.trim(),
@@ -276,7 +278,8 @@ class _ConcessionpageState extends State<Concessionpage> {
         "photoId_proof_upload": photoIdProofUploadController.text.trim(),
         "address_proof_type": selectedAddressProof ?? "",
         "address_proof_upload": addressProofUploadController.text.trim(),
-        "certificate_issue_date": selectedDate?.toIso8601String() ?? "",
+        // Use formatted date for certificate_issue_date
+        "certificate_issue_date": formatDate(selectedDate) ?? "",
         "hospital_state": selectedState ?? "",
         "hospital_city": field3Controller.text.trim(),
         "hospital_name": field4Controller.text.trim(),
@@ -325,7 +328,7 @@ class _ConcessionpageState extends State<Concessionpage> {
   }
   Future<void> _loadDraft() async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    print('$appid');
+    print(' $appid');
 
 
     try {
@@ -344,8 +347,14 @@ class _ConcessionpageState extends State<Concessionpage> {
           cityController.text = responseBody['city'] ?? '';
           districtController.text = responseBody['district'] ?? '';
           stateController.text = responseBody['statename'] ?? '';
-          dobController.text = responseBody['date_of_birth'] ?? '';
-
+          // Set selectedDob and dobController from response
+          if (responseBody['date_of_birth'] != null && responseBody['date_of_birth'].toString().isNotEmpty) {
+            selectedDob = DateTime.tryParse(responseBody['date_of_birth']);
+            dobController.text = responseBody['date_of_birth'];
+          } else {
+            selectedDob = null;
+            dobController.text = '';
+          }
           concessionController.text = responseBody['concession_certificate'] ?? '';
           photoController.text = responseBody['photograph'] ?? '';
           disabilityController.text = responseBody['disability_certificate'] ?? '';
@@ -362,7 +371,12 @@ class _ConcessionpageState extends State<Concessionpage> {
           final addressProofFromDb = responseBody['address_proof_type'];
           selectedAddressProof = addressProofTypes.contains(addressProofFromDb) ? addressProofFromDb : null;
 
-          selectedDate = DateTime.tryParse(responseBody['certificate_issue_date'] ?? '');
+          // Set selectedDate from response
+          if (responseBody['certificate_issue_date'] != null && responseBody['certificate_issue_date'].toString().isNotEmpty) {
+            selectedDate = DateTime.tryParse(responseBody['certificate_issue_date']);
+          } else {
+            selectedDate = null;
+          }
           selectedState = states.contains(responseBody['hospital_state']) ? responseBody['hospital_state'] : null;
 
           field3Controller.text = responseBody['hospital_city'] ?? '';
@@ -383,6 +397,10 @@ class _ConcessionpageState extends State<Concessionpage> {
     }
   }
 
+  String? formatDate(DateTime? date) {
+    if (date == null) return null;
+    return " ${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
 
   @override
   Widget buildInfoRow(String label, String value) {
@@ -560,8 +578,8 @@ class _ConcessionpageState extends State<Concessionpage> {
           );
           if (pickedDate != null) {
             setState(() {
-              dobController.text =
-              "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
+              selectedDob = pickedDate;
+              dobController.text = formatDate(pickedDate)!;
             });
             _checkFormFilled(); // ✅ ensure we re-check form filled
           }
