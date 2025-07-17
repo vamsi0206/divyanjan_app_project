@@ -48,6 +48,7 @@ class _ConcessionpageState extends State<Concessionpage> {
 
   bool isConfirmed = false;
 
+
   List<String> states = [
     'Andhra Pradesh',
     'Arunachal Pradesh',
@@ -349,8 +350,9 @@ class _ConcessionpageState extends State<Concessionpage> {
           stateController.text = responseBody['statename'] ?? '';
           // Set selectedDob and dobController from response
           if (responseBody['date_of_birth'] != null && responseBody['date_of_birth'].toString().isNotEmpty) {
-            selectedDob = DateTime.tryParse(responseBody['date_of_birth']);
-            dobController.text = responseBody['date_of_birth'];
+            selectedDob = DateTime.tryParse(responseBody['date_of_birth'])?.toLocal();
+            dobController.text = formatDate(DateTime.tryParse(responseBody['date_of_birth'])?.toLocal() ?? DateTime.now())!;
+
           } else {
             selectedDob = null;
             dobController.text = '';
@@ -373,7 +375,7 @@ class _ConcessionpageState extends State<Concessionpage> {
 
           // Set selectedDate from response
           if (responseBody['certificate_issue_date'] != null && responseBody['certificate_issue_date'].toString().isNotEmpty) {
-            selectedDate = DateTime.tryParse(responseBody['certificate_issue_date']);
+            selectedDate = DateTime.tryParse(responseBody['certificate_issue_date'])?.toLocal();
           } else {
             selectedDate = null;
           }
