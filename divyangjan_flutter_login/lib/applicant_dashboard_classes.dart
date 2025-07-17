@@ -74,11 +74,23 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
             _isLoading = false;
           });
         } else {
-          setState(() {
-            _errorMessage = 'No application data found';
-            _isLoading = false;
-          });
+          final String status = jsonData['status'] ?? '';
+          final String comments = jsonData['comments'] ?? '';
+
+
+          if (status.toLowerCase() == 'rejected') {
+            setState(() {
+              _errorMessage = 'Your application is rejected. $comments. Apply for a new concession card.';
+              _isLoading = false;
+            });
+          } else {
+            setState(() {
+              _errorMessage = "No application data found";
+              _isLoading = false;
+            });
+          }
         }
+
       } else {
         setState(() {
           _errorMessage = 'Error: ${response.statusCode}';
@@ -165,9 +177,9 @@ class _ApplicationDetailsTableState extends State<ApplicationDetailsTable> {
                       ? IconButton(
                     icon: Icon(
                       Icons.open_in_new,
-                      color: _statusValue == 'approved' ? Colors.blue : Colors.grey,
+                      color: _statusValue == 'card_generated' ? Colors.blue : Colors.grey,
                     ),
-                    onPressed: _statusValue == 'approved' ? _onOpenPressed : null,
+                    onPressed: _statusValue == 'card_generated' ? _onOpenPressed : null,
                   )
                       : Text(detail.value, style: const TextStyle(fontFamily: 'InriaSans')),
                 ),
